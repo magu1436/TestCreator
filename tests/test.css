@@ -1,0 +1,9 @@
+
+.my-table {
+    table-layout: fixed;
+    height: 100%;
+}
+
+.tables {
+    display: flex;
+}
