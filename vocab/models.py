@@ -33,8 +33,6 @@ class Word(models.Model):
 
     class Meta:
         ordering = ["wordlist", "number"]       # デフォルトの並び替えを定義
-        verbose_name = "単語"                   # データベース編集時にここで指定した値が使われるらしい？
-        verbose_name = "単語一覧"
-
+    
     def __str__(self):
         return f"{self.wordlist} - {self.number}: {self.term}"
