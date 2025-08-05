@@ -9,11 +9,14 @@ class AdminUserAdmin(UserAdmin):
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         ("権限情報", {"fields": ("is_active", "is_staff", "is_superuser")}),
-        ("その他", {"fields": ("date_joined",)}),
+        ("その他", {"fields": ()}),
     )
+
+    readonly_fields = ("date_joined",)
+
     add_fieldsets = (
         (None, {
-            "classed": ("wide",),
+            "classes": ("wide",),
             "fields": ("username", "password1", "password2"),
         }),
     )
