@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %} My Project {% endblock %}</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/basestyle.css' %}">
+    </head>
+    <body>
+        {% include 'includes/header.html' %}
+        <main>
+            {% block content %}
+            <!-- 各ページの中身を記述-->
+            {% endblock %}
+        </main>
+    </body>
+</html>
