@@ -5,10 +5,59 @@
         <title>HOME</title>
         {% load static %}
         <link rel="stylesheet" href="{% static 'home/css/homestyle.css' %}">
+
+        <!-- Bootstrap CSS -->
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     </head>
     <body>
-        <div id="logo">
-            <img src="{% static 'images/logo.png' %}" alt="ロゴ画像">
+        <div class="container-fluid vh-100 d-flex flex-column justify-content-evenly align-items-center">
+
+            <div class="d-flex flex-row justify-content-between mt-5 mb-4 h-25">
+
+                <img  
+                    src="{% static 'images/logo.png' %}" 
+                    alt="ロゴ画像"
+                    class="me-auto"
+                >
+
+                <div class="container d-flex flex-column align-items-center">
+                    <h1>ログインユーザー</h1>
+                    {% if user.is_authenticated %}
+                        <h2>{{ user.username }}</h2>
+                    {% else %}
+                        <h2>未ログイン</h2>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ボタン群：ロゴの下から画面下にかけて均等配置 -->
+            <div class="d-flex flex-column justify-content-evenly flex-grow-1 align-items-center w-100 gap-4 my-4">
+
+                <a href="" class="btn btn-secondary btn-lg btn-column w-50 flex-fill text-center d-flex align-items-center justify-content-center">
+                    テスト作成
+                </a>
+                <a href="" class="btn btn-secondary btn-lg btn-column w-50 flex-fill text-center d-flex align-items-center justify-content-center">
+                    単語帳参照
+                </a>
+                <a href="" class="btn btn-secondary btn-lg btn-column w-50 flex-fill text-center d-flex align-items-center justify-content-center">
+                    単語帳編集
+                </a>
+
+                <!-- ログインボタンまたはログアウトボタン -->
+                {% if user.is_authenticated %}
+                    <a href="" class="btn btn-secondary btn-lg btn-column w-25 flex-fill text-center d-flex align-items-center justify-content-center">
+                        ログアウト
+                    </a>
+                {% else %}
+                    <a href="" class="btn btn-secondary btn-lg btn-column w-25 flex-fill text-center d-flex align-items-center justify-content-center">
+                        ログイン
+                    </a>
+                {% endif %}
+            </div>
         </div>
+        
+        <!-- Bootstrap JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
