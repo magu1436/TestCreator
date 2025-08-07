@@ -10,10 +10,16 @@
 
         {% load static %}
         <link rel="stylesheet" href="{% static 'css/basestyle.css' %}">
+
+        {% block loadcss %}
+        <!-- CSSファイルのロードを記述 -->
+        {% endblock %}
     </head>
     <body>
-        {% include 'includes/header.html' %}
-        <main>
+        <div class="w-100" style="height: 15vh;">
+            {% include 'includes/header.html' %}
+        </div>
+        <main class="w-100" style="height: 85vh;">
             {% block content %}
             <!-- 各ページの中身を記述-->
             {% endblock %}
@@ -21,5 +27,9 @@
             <!-- Bootstrap JavaScript -->
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         </main>
+
+        {% block loadjs %}
+        <!-- JSファイルのロードを記述 -->
+        {% endblock %}
     </body>
 </html>
