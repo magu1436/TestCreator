@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'home',
     'accounts',
     'wordbank',
+    'vocab',
 ]
 
 AUTH_USER_MODEL = 'accounts.AdminUser'
