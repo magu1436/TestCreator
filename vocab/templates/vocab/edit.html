@@ -1,0 +1,56 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+単語編集画面
+{% endblock %}
+
+{% block loadcss %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'vocab/css/editstyle.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="d-flex flex-column flex-grow-1 h-100 w-75 mx-auto">
+    <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly">
+
+    </div>
+
+    <div id="word_table" class="d-flex flex-column flex-grow-1 overflow-auto">
+        <header class="d-flex flex-row flex-shrink-0">
+                <div class="p-2 border word-number">単語番号</div>
+                <div class="p-2 border word-term">単語</div>
+                <div class="p-2 border word-meaning">意味</div>
+                <div class="p-2 border word-edited-by">最終更新者</div>
+        </header>
+
+        <div class="flex-grow-1 overflow-auto">
+            <div class="d-flex flex-row flex-shrink-0">
+                <div class="p-2 border word-number">1</div>
+                <div class="p-2 border word-term">make</div>
+                <div class="p-2 border word-meaning overflow-auto">作る、させる</div>
+                <div class="p-2 border word-edited-by">山田太郎</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="buttons" class="d-flex flex-row gap-2 flex-shrink-0 mt-2">
+        <a href="#" class="btn btn-secondary text-center wordlist-btn">
+            単語帳新規作成
+        </a>
+        <a href="#" class="btn btn-secondary text-center wordlist-btn me-auto">
+            単語帳削除
+        </a>
+        <a href="#" class="btn btn-secondary text-center word-btn">
+            写真から追加
+        </a>
+        <a href="#" class="btn btn-secondary text-center word-btn">
+            手動追加
+        </a>
+        <a href="#" class="btn btn-secondary text-center word-btn">
+            単語を削除
+        </a>
+    </div>
+</div>
+{% endblock %}
