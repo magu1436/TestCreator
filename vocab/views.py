@@ -2,13 +2,27 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from .models import Word
+from wordbank.models import WordList
+
 
 class EditView(LoginRequiredMixin, TemplateView):
     login_url = "accounts:login"
     redirect_field_name = "vocab:editor"
 
     def get(self, request):
-        return render(request, "vocab/edit.html")
+        params = {}
+        word_lists = WordList.objects
+        if not self.request.GET:
+            target_word_list = word_lists.first()
+        else:
+            target_word_list_name = self.request.GET.get("target_word_list")
+            target_word_list = WordList.objects.filter(name=target_word_list_name).first()
+        words = Word.objects.filter(wordlist=target_word_list.id)
+        params["words"] = words
+        params["target_word_list"] = target_word_list
+        params["word_lists"] = word_lists.exclude(id=target_word_list.id)
+        return render(request, "vocab/edit.html", params)
     
     def post(self, request):
         return self.get(request)

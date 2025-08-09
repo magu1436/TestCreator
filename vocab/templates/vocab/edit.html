@@ -14,7 +14,12 @@
 {% block content %}
 <div class="d-flex flex-column flex-grow-1 h-100 w-75 mx-auto">
     <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly">
-
+        <select onchange="location.href='?target_word_list=' + this.value;">
+            <option value="{{target_word_list.name}}">{{target_word_list.name}}</option>
+            {% for word_list in word_lists %}
+            <option value="{{word_list.name}}">{{word_list.name}}</option>
+            {% endfor %}
+        </select>
     </div>
 
     <div id="word_table" class="d-flex flex-column flex-grow-1 overflow-auto">
@@ -26,12 +31,14 @@
         </header>
 
         <div class="flex-grow-1 overflow-auto">
-            <div class="d-flex flex-row flex-shrink-0">
-                <div class="p-2 border word-number">1</div>
-                <div class="p-2 border word-term">make</div>
-                <div class="p-2 border word-meaning overflow-auto">作る、させる</div>
-                <div class="p-2 border word-edited-by">山田太郎</div>
+            {% for word in words %}
+            <div class="word-row d-flex flex-row flex-shrink-0" data-id="{{word.id}}" data-number="{{word.number}}">
+                <div class="p-2 border word-number">{{word.number}}</div>
+                <div class="p-2 border word-term">{{word.term}}</div>
+                <div class="p-2 border word-meaning overflow-auto">{{word.meaning}}</div>
+                <div class="p-2 border word-edited-by">{{word.latest_edited_by}}</div>
             </div>
+            {% endfor %}
         </div>
     </div>
 
