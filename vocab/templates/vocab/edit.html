@@ -13,21 +13,32 @@
 
 {% block content %}
 <div class="d-flex flex-column flex-grow-1 h-100 w-75 mx-auto">
-    <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly">
-        <select onchange="location.href='?target_word_list=' + this.value;">
+    <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly gap-5 mb-2">
+        <select class="w-100" onchange="location.href='?target_word_list=' + this.value;">
             <option value="{{target_word_list.name}}">{{target_word_list.name}}</option>
             {% for word_list in word_lists %}
             <option value="{{word_list.name}}">{{word_list.name}}</option>
             {% endfor %}
         </select>
+
+        <div id="word-number-ranged" class="d-flex">
+            <input id="start-range" type="number">
+            <a> ～ </a>
+            <input id="end-range" type="number">
+        </div>
+
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="キーワード...">
+            <button class="btn btn-outline-secondary" type="button">検索</button>
+        </div>
     </div>
 
-    <div id="word_table" class="d-flex flex-column flex-grow-1 overflow-auto">
+    <div id="word_table" class="d-flex flex-column flex-grow-1 overflow-auto mb-2">
         <header class="d-flex flex-row flex-shrink-0">
-                <div class="p-2 border word-number">単語番号</div>
-                <div class="p-2 border word-term">単語</div>
-                <div class="p-2 border word-meaning">意味</div>
-                <div class="p-2 border word-edited-by">最終更新者</div>
+            <div class="p-2 border word-number">単語番号</div>
+            <div class="p-2 border word-term">単語</div>
+            <div class="p-2 border word-meaning">意味</div>
+            <div class="p-2 border word-edited-by">最終更新者</div>
         </header>
 
         <div class="flex-grow-1 overflow-auto">
@@ -42,7 +53,7 @@
         </div>
     </div>
 
-    <div id="buttons" class="d-flex flex-row gap-2 flex-shrink-0 mt-2">
+    <div id="buttons" class="d-flex flex-row gap-2 flex-shrink-0 mb-2">
         <a href="#" class="btn btn-secondary text-center wordlist-btn">
             単語帳新規作成
         </a>
@@ -60,4 +71,9 @@
         </a>
     </div>
 </div>
+{% endblock %}
+
+
+{% block loadjs %}
+<script src="{% static 'vocab/js/edit.js' %}"></script>
 {% endblock %}
