@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <div id="word_table" class="d-flex flex-column flex-grow-1 overflow-auto mb-2">
+    <div id="word-table" class="d-flex flex-column flex-grow-1 overflow-auto mb-2">
         <header class="d-flex flex-row flex-shrink-0">
             <div class="p-2 border word-number">単語番号</div>
             <div class="p-2 border word-term">単語</div>
@@ -41,7 +41,7 @@
             <div class="p-2 border word-edited-by">最終更新者</div>
         </header>
 
-        <div class="flex-grow-1 overflow-auto">
+        <div id="word-table-content" class="flex-grow-1 overflow-auto">
             {% for word in words %}
             <div class="word-row d-flex flex-row flex-shrink-0" data-id="{{word.id}}" data-number="{{word.number}}">
                 <div class="p-2 border word-number">{{word.number}}</div>
@@ -63,12 +63,43 @@
         <a href="#" class="btn btn-secondary text-center word-btn">
             写真から追加
         </a>
-        <a href="#" class="btn btn-secondary text-center word-btn">
-            手動追加
-        </a>
+        <button type="button" class="btn btn-secondary text-center word-btn" data-bs-toggle="modal" data-bs-target="#add-word-modal">
+            単語手動追加
+        </button>
         <a href="#" class="btn btn-secondary text-center word-btn">
             単語を削除
         </a>
+    </div>
+</div>
+
+<!-- 単語手動追加用モーダル -->
+<div id="add-word-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="motdal-title">新しい単語を追加</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-column">
+                    <div class="row m-2">
+                        <h5 class="col-3">単語番号</h5>
+                        <input id="added-word-number" type="number" class="col-3">
+                    </div>
+                    <div class="row m-2">
+                        <h5 class="col-3">単語</h5>
+                        <input id="added-word-term" type="text" class="col-9">
+                    </div>
+                    <div class="row m-2">
+                        <h5 class="col-3">意味</h5>
+                        <input id="added-word-meaning" type="text" class="col-9">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="addWord()">追加する</button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
