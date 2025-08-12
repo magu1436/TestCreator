@@ -2,6 +2,8 @@
 const startRangeElement = document.getElementById("start-range")
 const endRangeElement = document.getElementById("end-range")
 
+const searchBoxElement = document.getElementById("search_box")
+
 
 /**
  * 単語の表示・非表示を設定する関数.
@@ -11,6 +13,32 @@ const endRangeElement = document.getElementById("end-range")
 function setVisible(element, visible){
     element.classList.toggle("d-none", !visible);
     element.classList.toggle("d-flex", visible);
+}
+
+/**
+ * 検索ボックスの値が含まれる単語のみを表示させる関数.  
+ * 空白区切りでand検索が可能.  
+ */
+function searchWord(){
+    const searchWords = searchBoxElement.value
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)        // 空配列を削除
+        .map(w => w.toLowerCase())
+    const rows = document.getElementsByClassName("word-row");
+
+    for (let row of rows) setVisible(row, true);
+
+    for(let row of rows){
+        for(let word of searchWords){
+            const term = row.querySelector(".word-term").textContent.toLowerCase();
+            const meaning = row.querySelector(".word-meaning").textContent.toLowerCase()
+            if(!term.includes(word) && !meaning.includes(word)){
+                setVisible(row, false);
+                break;
+            }
+        }
+    }
 }
 
 /**
