@@ -88,22 +88,26 @@ function createWordRowElement(id, number, term, meaning, editor){
     });
     wordRow.dataset.id = id;
     wordRow.dataset.number = number;
-    
-    let wordNumber = document.createElement("div");
-    wordNumber.classList.add("word-number");
-    wordNumber.textContent = String(number);
 
-    let wordTerm = document.createElement("div");
-    wordTerm.classList.add("word-term");
-    wordTerm.textContent = term
+    let wordNumber = Object.assign(document.createElement("div"), {
+        className: "word-number",
+        textContent: number,
+    })
 
-    let wordMeaning = document.createElement("div");
-    wordMeaning.classList.add("word-meaning");
-    wordMeaning.textContent = meaning;
+    let wordTerm = Object.assign(document.createElement("div"), {
+        className: "word-term",
+        textContent: term,
+    })
 
-    let wordEditedBy = document.createElement("div");
-    wordEditedBy.classList.add("word-edited-by");
-    wordEditedBy.textContent = editor;
+    let wordMeaning = Object.assign(document.createElement("div"), {
+        className: "word-meaning",
+        textContent: meaning,
+    })
+
+    let wordEditedBy = Object.assign(document.createElement("div"), {
+        className: "word-edited-by",
+        textContent: editor,
+    })
 
     let rowChildren = [wordNumber, wordTerm, wordMeaning, wordEditedBy];
     rowChildren.forEach(child => {
