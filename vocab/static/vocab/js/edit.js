@@ -71,6 +71,22 @@ startRangeElement.addEventListener("change", applyRangedNumberFilter);
 endRangeElement.addEventListener("change", applyRangedNumberFilter);
 
 
+// 単語追加機能
+
+const addedNumberElem = document.getElementById("added-word-number");
+const addedTermElem = document.getElementById("added-word-term");
+const addedMeaningElem = document.getElementById("added-word-meaning");
+
+const registerSuccessMessageElem = document.getElementById("register-success-message");
+
+function setRegisterSuccessMessage(number, term){
+    registerSuccessMessageElem.textContent = `"${number}: ${term}" を登録しました！`
+}
+
+function hideRegisterSuccessMessage(){
+    setVisible(registerSuccessMessageElem, false);
+}
+
 /**
  * 単語帳テーブルの行のHTML要素を作成して返す関数.
  * 
@@ -152,15 +168,12 @@ function insertWordRow(id, number, term, meaning, editor){
  * TODO: 不正な値が入力されたときのエラーメッセージのポップアップ表示の実装.
  */
 function registerWord(){
-    const numberElem = document.getElementById("added-word-number");
-    const termElem = document.getElementById("added-word-term");
-    const meaningElem = document.getElementById("added-word-meaning");
     const wordlistId = document.getElementById("current-wordlist").dataset.id;
 
     const formData = new FormData();
-    formData.append("number", numberElem.value)
-    formData.append("term", termElem.value)
-    formData.append("meaning", meaningElem.value)
+    formData.append("number", addedNumberElem.value.trim())
+    formData.append("term", addedTermElem.value.trim())
+    formData.append("meaning", addedMeaningElem.value.trim())
     formData.append("wordlist", wordlistId)
 
     const csrftoken = Cookies.get("csrftoken")
@@ -172,20 +185,45 @@ function registerWord(){
         },
         body: formData
     })
-        .then((response) => {
-            return response.json();
+        .then(async (response) => {
+            // JSONでない応答でも落ちないようにする
+            const data = await response.json().catch(() => ({}));
+
+            // HTTPとして失敗 or サーバー側で {ok: false}
+            if (!response.ok || data.ok === false){
+                const errs = data.error || data.errors;
+                const messages = [];
+                for (const [field, msgs] of Object.entries(errs || {})){
+                    messages.push(`${field}: ${[].concat(msgs).join("")}`);
+                }
+                hideRegisterSuccessMessage();
+                alert(messages.join("\n") || "入力エラーが生じました.");
+                throw new Error("validation_failed");
+            }
+            return data
         })
         .then((response) => {
+            const number = addedNumberElem.value.trim();
+            const term = addedTermElem.value.trim();
+            const meaning = addedMeaningElem.value.trim();
             insertWordRow(
                 response.id,
-                numberElem.value,
-                termElem.value,
-                meaningElem.value,
+                number,
+                term,
+                meaning,
                 response.editor
             );
 
-            numberElem.value = "";
-            termElem.value = "";
-            meaningElem.value = "";
+            setRegisterSuccessMessage(number, term);
+            setVisible(registerSuccessMessageElem, true);
+
+            addedTermElem.value = "";
+            addedMeaningElem.value = "";
+        })
+        .catch((err) => {
+            if (err.message !== "validation_failed"){
+                console.error(err);
+                alert("通信エラーが発生しました!");
+            }
         })
 }

@@ -8,7 +8,7 @@ class Word(models.Model):
     number = models.PositiveIntegerField("単語番号")
     term = models.CharField(
         "単語",
-        max_length=30
+        max_length=30,
     )
     meaning = models.CharField(
         "意味",

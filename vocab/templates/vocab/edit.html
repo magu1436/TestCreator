@@ -94,11 +94,12 @@
                         <h5 class="col-3">意味</h5>
                         <input id="added-word-meaning" type="text" class="col-9">
                     </div>
+                    <h4 id="register-success-message" class="d-none"></h4>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="registerWord()">追加する</button>
+                <button type="button" class="btn btn-secondary" onclick="hideRegisterSuccessMessage()" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary" onclick="registerWord()">追加する</button>
             </div>
         </div>
     </div>
