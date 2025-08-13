@@ -152,7 +152,7 @@ function insertWordRow(id, number, term, meaning, editor){
  * 単語追加モーダルから値を取得してテーブルに追加する関数.  
  * TODO: 取得した値をデータベースに登録し, IDと編集者を受け取ってそれらを登録する.
  */
-function addWord(){
+function registerWord(){
     const number = document.getElementById("added-word-number").value;
     const term = document.getElementById("added-word-term").value;
     const meaning = document.getElementById("added-word-meaning").value;
