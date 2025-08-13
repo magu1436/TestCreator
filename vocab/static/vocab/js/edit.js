@@ -135,7 +135,6 @@ function insertWordRow(id, number, term, meaning, editor){
     let wordRow = createWordRowElement(id, number, term, meaning, editor);
     let is_insert = false;
     for(let row of wordTableContentElement.getElementsByClassName("word-row")){
-        console.log(Number(row.dataset.number))
         if(Number(number) < Number(row.dataset.number)){
             row.before(wordRow);
             is_insert = true;
@@ -149,12 +148,44 @@ function insertWordRow(id, number, term, meaning, editor){
 }
 
 /**
- * 単語追加モーダルから値を取得してテーブルに追加する関数.  
- * TODO: 取得した値をデータベースに登録し, IDと編集者を受け取ってそれらを登録する.
+ * 単語追加モーダルから値を取得してデータベースに登録し, テーブルに追加する関数.  
+ * TODO: 不正な値が入力されたときのエラーメッセージのポップアップ表示の実装.
  */
 function registerWord(){
-    const number = document.getElementById("added-word-number").value;
-    const term = document.getElementById("added-word-term").value;
-    const meaning = document.getElementById("added-word-meaning").value;
-    insertWordRow(7, number, term, meaning, "test admin");
+    const numberElem = document.getElementById("added-word-number");
+    const termElem = document.getElementById("added-word-term");
+    const meaningElem = document.getElementById("added-word-meaning");
+    const wordlistId = document.getElementById("current-wordlist").dataset.id;
+
+    const formData = new FormData();
+    formData.append("number", numberElem.value)
+    formData.append("term", termElem.value)
+    formData.append("meaning", meaningElem.value)
+    formData.append("wordlist", wordlistId)
+
+    const csrftoken = Cookies.get("csrftoken")
+
+    fetch("register/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrftoken,
+        },
+        body: formData
+    })
+        .then((response) => {
+            return response.json();
+        })
+        .then((response) => {
+            insertWordRow(
+                response.id,
+                numberElem.value,
+                termElem.value,
+                meaningElem.value,
+                response.editor
+            );
+
+            numberElem.value = "";
+            termElem.value = "";
+            meaningElem.value = "";
+        })
 }

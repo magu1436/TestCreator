@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.db import transaction
 
 from .models import Word
+from .forms import WordForm
 from wordbank.models import WordList
 
 
@@ -26,3 +29,17 @@ class EditView(LoginRequiredMixin, TemplateView):
     
     def post(self, request):
         return self.get(request)
+
+
+class RegisterView(TemplateView):
+    def post(self, request):
+        data: dict = request.POST.copy()
+
+        form = WordForm(data=data)
+        if form.is_valid():
+            word = form.save(commit=False)
+            word.latest_edited_by = self.request.user
+            word.save()
+            return JsonResponse({"id": word.id, "editor": self.request.user.username}, status=201)
+        else:
+            return JsonResponse({"error": form.errors}, status=400)
