@@ -46,7 +46,6 @@ for(let wordlist of data.wordlists){
 
 /**
  * 入力された単語名の単語帳を作成して, 作成した単語帳の編集画面へ遷移する関数.
- * @param {ButtonElement} button 押下されたボタンの要素
  */
 function createNewWordlist(){
     const wordlistName = document.getElementById("new-wordlist").value.trim();
@@ -88,6 +87,10 @@ function createNewWordlist(){
 
 
 // 単語帳削除機能
+/**
+ * 現在表示されている単語帳を削除する関数.  
+ * 削除後は単語帳指定をしない状態でEditViewへ遷移する.  
+ */
 function deleteWordlist(){
 
     const targetWordlistName = document.getElementById("delete-target-wordlist").textContent.trim();

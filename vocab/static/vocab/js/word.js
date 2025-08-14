@@ -12,7 +12,7 @@ const wordTableContentElement = document.getElementById("word-table-content");
  * @param {String} term 単語
  * @param {String} meaning 意味
  * @param {String} editor 最終更新者
- * @returns {HTMLDivElement}
+ * @returns {HTMLDivElement} 単語テーブルの行要素
  */
 function createWordRowElement(id, number, term, meaning, editor){
     let wordRow = document.createElement("div");
@@ -56,13 +56,14 @@ function createWordRowElement(id, number, term, meaning, editor){
 /**
  * 単語帳のテーブルに単語を追加して表示する関数.  
  * 追加する単語の番号を参照して, 昇順になるように挿入する.  
- * 追加後は単語番号フィルターと単語検索を実行して, フィルターがある場合に追加されても  
- * フィルターが機能するようにしている.  
+ * デフォルトでは, 追加後は単語番号フィルターと単語検索を実行して, フィルターがある場合  
+ * に追加されてもフィルターが機能するようにしている.  
  * @param {Number} id 単語のデータベース上のID
  * @param {String} number 単語番号
  * @param {String} term 単語
  * @param {String} meaning 意味
  * @param {String} editor 最終更新者
+ * @param {boolean} apply_search 挿入後に単語検索を行うかどうか
  */
 function insertWordRow(id, number, term, meaning, editor, apply_search = true){
     let wordRow = createWordRowElement(id, number, term, meaning, editor);
@@ -103,10 +104,18 @@ const addedMeaningElem = document.getElementById("added-word-meaning");
 
 const registerSuccessMessageElem = document.getElementById("register-word-success-message");
 
+/**
+ * 単語登録が成功時のメッセージを更新する関数.
+ * @param {String} number 単語番号
+ * @param {String} term 単語
+ */
 function setRegisterWordSuccessMessage(number, term){
     registerSuccessMessageElem.textContent = `"${number}: ${term}" を登録しました！`
 }
 
+/**
+ * 単語登録成功時に表示されるdiv要素を隠す関数.
+ */
 function hideRegisterWordSuccessMessage(){
     setVisible(registerSuccessMessageElem, false);
 }
@@ -123,12 +132,10 @@ function registerWord(){
     formData.append("meaning", addedMeaningElem.value.trim())
     formData.append("wordlist", wordlistId)
 
-    const csrftoken = Cookies.get("csrftoken")
-
     fetch(appUrls["vocab:register"], {
         method: "POST",
         headers: {
-            "X-CSRFToken": csrftoken,
+            "X-CSRFToken": getCSRFToken(),
         },
         body: formData
     })
