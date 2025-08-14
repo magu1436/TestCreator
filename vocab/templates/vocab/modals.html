@@ -1,0 +1,54 @@
+<!-- 単語帳追加用モーダル -->
+<div id="create-wordlist-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="motdal-title">新しい単語帳を追加</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-column">
+                    <div class="row m-2">
+                        <h5 class="col-4">単語帳の名前</h5>
+                        <input id="new-wordlist" type="text" class="col-8">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary" onclick="createNewWordlist(this)" data-app-url="{% url 'wordbank:create' %}">作成する</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 単語手動登録用モーダル -->
+<div id="add-word-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="motdal-title">新しい単語を追加</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-column">
+                    <div class="row m-2">
+                        <h5 class="col-3">単語番号</h5>
+                        <input id="added-word-number" type="number" class="col-3">
+                    </div>
+                    <div class="row m-2">
+                        <h5 class="col-3">単語</h5>
+                        <input id="added-word-term" type="text" class="col-9">
+                    </div>
+                    <div class="row m-2">
+                        <h5 class="col-3">意味</h5>
+                        <input id="added-word-meaning" type="text" class="col-9">
+                    </div>
+                    <h4 id="register-word-success-message" class="d-none"></h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideRegisterWordSuccessMessage()" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary" onclick="registerWord(this)" data-app-url="{% url 'vocab:register' %}">追加する</button>
+            </div>
+        </div>
+    </div>
+</div>
