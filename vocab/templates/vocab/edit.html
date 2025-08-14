@@ -99,7 +99,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="hideRegisterSuccessMessage()" data-bs-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-primary" onclick="registerWord()">追加する</button>
+                <button type="button" class="btn btn-primary" onclick="registerWord(this)" data-app-url="{% url 'vocab:register' %}">追加する</button>
             </div>
         </div>
     </div>

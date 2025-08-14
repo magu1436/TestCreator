@@ -165,9 +165,8 @@ function insertWordRow(id, number, term, meaning, editor){
 
 /**
  * 単語追加モーダルから値を取得してデータベースに登録し, テーブルに追加する関数.  
- * TODO: 不正な値が入力されたときのエラーメッセージのポップアップ表示の実装.
  */
-function registerWord(){
+function registerWord(button){
     const wordlistId = document.getElementById("current-wordlist").dataset.id;
 
     const formData = new FormData();
@@ -178,7 +177,7 @@ function registerWord(){
 
     const csrftoken = Cookies.get("csrftoken")
 
-    fetch("register/", {
+    fetch(button.dataset.appUrl, {
         method: "POST",
         headers: {
             "X-CSRFToken": csrftoken,
