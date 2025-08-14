@@ -1,7 +1,11 @@
+import json
+
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.forms.models import model_to_dict
+from django.core.serializers.json import DjangoJSONEncoder
 
 from .models import Word
 from .forms import WordForm
@@ -24,6 +28,13 @@ class EditView(LoginRequiredMixin, TemplateView):
         params["words"] = words
         params["target_word_list"] = target_word_list
         params["word_lists"] = word_lists.exclude(id=target_word_list.id)
+
+        json_data = {
+            "words": [model_to_dict(word, ["id", "term", "meaning", "latest_edited_by"]) for word in params["words"]],
+            "target_wordlist": model_to_dict(params["target_word_list"], ["id", "name"]),
+            "wordlists": [model_to_dict(wordlist, ["id", "name"]) for wordlist in params["word_lists"]],
+        }
+        params["json_data"] = json.dumps(json_data, ensure_ascii=False, cls=DjangoJSONEncoder)
         return render(request, "vocab/edit.html", params)
     
     def post(self, request):

@@ -3,7 +3,7 @@ const wordlistSelector = document.getElementById("wordlist-selector");
 
 /**
  * 単語帳を選択する際に表示するドロップダウンの要素を作成して返す関数.
- * @param {String} id 単語帳のID
+ * @param {Number} id 単語帳のID
  * @param {String} name 単語帳の名前
  * @param {boolean} isCurrentWordlist 現在表示されている単語帳かどうか
  * @returns Select要素に追加する単語帳の情報を含むOption要素
@@ -22,7 +22,7 @@ function createWordlistOption(id, name, isCurrentWordlist = false){
 
 /**
  * 単語帳選択のドロップダウンに単語帳の行を追加する関数.
- * @param {String} id 単語帳のID
+ * @param {Number} id 単語帳のID
  * @param {String} name 単語帳の名前
  */
 function appendWordlistToSelector(id, name){
@@ -74,4 +74,14 @@ function createNewWordlist(button){
                 alert("通信エラーが発生しました！");
             }
         })
+}
+
+
+if(data.target_wordlist === null){
+    appendWordlistToSelector(-1, "null");
+}else{
+    appendWordlistToSelector(data.target_wordlist.id, data.target_wordlist.name);
+}
+for(let wordlist of data.wordlists){
+    appendWordlistToSelector(wordlist.id, wordlist.name);
 }

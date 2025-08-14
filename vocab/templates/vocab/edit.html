@@ -16,10 +16,6 @@
 <div class="d-flex flex-column flex-grow-1 h-100 w-75 mx-auto">
     <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly gap-5 mb-2">
         <select id="wordlist-selector" class="w-100" onchange="location.href='?target_word_list=' + this.value;">
-            <option id="current-wordlist" value="{{target_word_list.name}}" data-id="{{target_word_list.id}}">{{target_word_list.name}}</option>
-            {% for word_list in word_lists %}
-            <option value="{{word_list.name}}">{{word_list.name}}</option>
-            {% endfor %}
         </select>
 
         <div id="word-number-ranged" class="d-flex">
@@ -80,6 +76,10 @@
 
 
 {% block loadjs %}
+<script>
+    const data = JSON.parse('{{ json_data | safe}}');
+</script>
 <script src="{% static 'vocab/js/edit.js' %}"></script>
 <script src="{% static 'vocab/js/wordlist.js' %}"></script>
+
 {% endblock %}
