@@ -7,3 +7,7 @@ function setVisible(element, visible){
     element.classList.toggle("d-none", !visible);
     element.classList.toggle("d-flex", visible);
 }
+
+function getCSRFToken(){
+    return Cookies.get("csrftoken");
+}

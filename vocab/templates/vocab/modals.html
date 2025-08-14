@@ -21,6 +21,31 @@
     </div>
 </div>
 
+<!-- 単語帳削除用モーダル -->
+<div id="delete-wordlist-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="motdal-title">単語帳を削除</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-column flex-grow-1">
+                    <div class="row">
+                        <h5>削除する単語帳: </h5>
+                        <h5 id="delete-target-wordlist"> {{ target_word_list.name }} </h5>
+                    </div>
+                    <h5>削除する単語帳の名前を入力してから、削除ボタンを押してください。</h5>
+                    <input type="text" id="delete-target-wordlist-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-danger" onclick="deleteWordlist(this)" data-app-url="{% url 'wordbank:delete' %}">削除する</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 単語手動登録用モーダル -->
 <div id="add-word-modal" class="modal" tabindex="-1">
     <div class="modal-dialog">
@@ -47,7 +72,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="hideRegisterWordSuccessMessage()" data-bs-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-primary" onclick="registerWord(this)" data-app-url="{% url 'vocab:register' %}">追加する</button>
+                <button type="button" class="btn btn-danger" onclick="registerWord(this)" data-app-url="{% url 'vocab:register' %}">追加する</button>
             </div>
         </div>
     </div>

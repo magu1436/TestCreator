@@ -24,9 +24,21 @@ function createWordlistOption(id, name, isCurrentWordlist = false){
  * 単語帳選択のドロップダウンに単語帳の行を追加する関数.
  * @param {Number} id 単語帳のID
  * @param {String} name 単語帳の名前
+ * @param {boolean} isCurrentWordlist 現在表示されている単語帳かどうか
  */
-function appendWordlistToSelector(id, name){
-    wordlistSelector.appendChild(createWordlistOption(id, name));
+function appendWordlistToSelector(id, name, isCurrentWordlist = false){
+    wordlistSelector.appendChild(createWordlistOption(id, name, isCurrentWordlist));
+}
+
+
+// 単語帳選択ドロップダウンを作成する初期化処理
+if(data.target_wordlist === null){
+    appendWordlistToSelector(-1, "null", true);
+}else{
+    appendWordlistToSelector(data.target_wordlist.id, data.target_wordlist.name, true);
+}
+for(let wordlist of data.wordlists){
+    appendWordlistToSelector(wordlist.id, wordlist.name);
 }
 
 
@@ -42,12 +54,10 @@ function createNewWordlist(button){
     const formData = new FormData();
     formData.append("name", wordlistName);
 
-    const csrftoken = Cookies.get("csrftoken");
-
     fetch(button.dataset.appUrl, {
         method: "POST",
         headers: {
-            "X-CSRFToken": csrftoken,
+            "X-CSRFToken": getCSRFToken(),
         },
         body: formData,
     })
@@ -77,11 +87,42 @@ function createNewWordlist(button){
 }
 
 
-if(data.target_wordlist === null){
-    appendWordlistToSelector(-1, "null");
-}else{
-    appendWordlistToSelector(data.target_wordlist.id, data.target_wordlist.name);
-}
-for(let wordlist of data.wordlists){
-    appendWordlistToSelector(wordlist.id, wordlist.name);
+// 単語帳削除機能
+function deleteWordlist(button){
+
+    const targetWordlistName = document.getElementById("delete-target-wordlist").textContent.trim();
+    const userInputWordlistName = document.getElementById("delete-target-wordlist-input").value.trim();
+
+    if (targetWordlistName != userInputWordlistName){
+        alert("入力された単語帳名が異なります。");
+        return;
+    }
+
+    fetch(button.dataset.appUrl, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+        },
+        body: JSON.stringify({"id": data.target_wordlist.id})
+    })
+    .then(async (response) => {
+        const resData = await response.json().catch(() => ({}));
+
+        if (!response.ok || resData.ok === false){
+            const err = resData.error || resData.err;
+            alert(err || "何らかのエラーが発生しました.");
+            throw new Error("delete_failed");
+        }
+        return resData;
+    })
+    .then((response) => {
+        alert(`「${data.target_wordlist.name}」を削除しました。`)
+        location.href = "/vocab/editor/";
+    })
+    .catch((err) => {
+        if (err.messages !== "delete_failed"){
+            console.log(err);
+            alert("通信エラーが発生しました！");
+        }
+    })
 }

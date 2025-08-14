@@ -1,8 +1,11 @@
+
+
+// 検索機能
+
 const startRangeElement = document.getElementById("start-range");
 const endRangeElement = document.getElementById("end-range");
 
 const searchBoxElement = document.getElementById("search_box");
-
 
 /**
  * 検索ボックスの値が含まれる単語のみを表示させる関数.  
