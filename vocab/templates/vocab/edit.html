@@ -15,7 +15,7 @@
 {% block content %}
 <div class="d-flex flex-column flex-grow-1 h-100 w-75 mx-auto">
     <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly gap-5 mb-2">
-        <select class="w-100" onchange="location.href='?target_word_list=' + this.value;">
+        <select id="wordlist-selector" class="w-100" onchange="location.href='?target_word_list=' + this.value;">
             <option id="current-wordlist" value="{{target_word_list.name}}" data-id="{{target_word_list.id}}">{{target_word_list.name}}</option>
             {% for word_list in word_lists %}
             <option value="{{word_list.name}}">{{word_list.name}}</option>
@@ -55,9 +55,9 @@
     </div>
 
     <div id="buttons" class="d-flex flex-row gap-2 flex-shrink-0 mb-2">
-        <a href="#" class="btn btn-secondary text-center wordlist-btn">
+        <button type="button" class="btn btn-secondary text-center word-btn" data-bs-toggle="modal" data-bs-target="#create-wordlist-modal">
             単語帳新規作成
-        </a>
+        </button>
         <a href="#" class="btn btn-secondary text-center wordlist-btn me-auto">
             単語帳削除
         </a>
@@ -73,7 +73,30 @@
     </div>
 </div>
 
-<!-- 単語手動追加用モーダル -->
+<!-- 単語帳追加用モーダル -->
+<div id="create-wordlist-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="motdal-title">新しい単語帳を追加</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-column">
+                    <div class="row m-2">
+                        <h5 class="col-4">単語帳の名前</h5>
+                        <input id="new-wordlist" type="text" class="col-8">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary" onclick="createNewWordlist(this)" data-app-url="{% url 'wordbank:create' %}">作成する</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 単語手動登録用モーダル -->
 <div id="add-word-modal" class="modal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -94,11 +117,11 @@
                         <h5 class="col-3">意味</h5>
                         <input id="added-word-meaning" type="text" class="col-9">
                     </div>
-                    <h4 id="register-success-message" class="d-none"></h4>
+                    <h4 id="register-word-success-message" class="d-none"></h4>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="hideRegisterSuccessMessage()" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-secondary" onclick="hideRegisterWordSuccessMessage()" data-bs-dismiss="modal">閉じる</button>
                 <button type="button" class="btn btn-primary" onclick="registerWord(this)" data-app-url="{% url 'vocab:register' %}">追加する</button>
             </div>
         </div>
@@ -109,4 +132,5 @@
 
 {% block loadjs %}
 <script src="{% static 'vocab/js/edit.js' %}"></script>
+<script src="{% static 'vocab/js/wordlist.js' %}"></script>
 {% endblock %}

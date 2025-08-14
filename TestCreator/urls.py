@@ -22,4 +22,5 @@ urlpatterns = [
     path("", include("home.urls")),
     path("accounts/", include("accounts.urls")),
     path("vocab/", include("vocab.urls")),
+    path("wordbank/", include("wordbank.urls")),
 ]

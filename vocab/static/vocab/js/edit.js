@@ -77,9 +77,9 @@ const addedNumberElem = document.getElementById("added-word-number");
 const addedTermElem = document.getElementById("added-word-term");
 const addedMeaningElem = document.getElementById("added-word-meaning");
 
-const registerSuccessMessageElem = document.getElementById("register-success-message");
+const registerSuccessMessageElem = document.getElementById("register-word-success-message");
 
-function setRegisterSuccessMessage(number, term){
+function setRegisterWordSuccessMessage(number, term){
     registerSuccessMessageElem.textContent = `"${number}: ${term}" を登録しました！`
 }
 
