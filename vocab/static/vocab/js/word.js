@@ -107,7 +107,7 @@ function setRegisterWordSuccessMessage(number, term){
     registerSuccessMessageElem.textContent = `"${number}: ${term}" を登録しました！`
 }
 
-function hideRegisterSuccessMessage(){
+function hideRegisterWordSuccessMessage(){
     setVisible(registerSuccessMessageElem, false);
 }
 
@@ -143,7 +143,7 @@ function registerWord(button){
                 for (const [field, msgs] of Object.entries(errs || {})){
                     messages.push(`${field}: ${[].concat(msgs).join("")}`);
                 }
-                hideRegisterSuccessMessage();
+                hideRegisterWordSuccessMessage();
                 alert(messages.join("\n") || "入力エラーが生じました.");
                 throw new Error("validation_failed");
             }
@@ -161,7 +161,7 @@ function registerWord(button){
                 response.editor
             );
 
-            setRegisterSuccessMessage(number, term);
+            setRegisterWordSuccessMessage(number, term);
             setVisible(registerSuccessMessageElem, true);
 
             addedTermElem.value = "";

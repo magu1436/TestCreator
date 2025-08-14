@@ -30,10 +30,12 @@ class EditView(LoginRequiredMixin, TemplateView):
         params["word_lists"] = word_lists.exclude(id=target_word_list.id)
 
         json_data = {
-            "words": [model_to_dict(word, ["id", "number", "term", "meaning", "latest_edited_by"]) for word in params["words"]],
+            "words": [model_to_dict(word, ["id", "number", "term", "meaning"]) for word in params["words"]],
             "target_wordlist": model_to_dict(params["target_word_list"], ["id", "name"]),
             "wordlists": [model_to_dict(wordlist, ["id", "name"]) for wordlist in params["word_lists"]],
         }
+        for word_dict, word in zip(json_data["words"], params["words"]):
+            word_dict["latest_edited_by"] = word.latest_edited_by.username
         params["json_data"] = json.dumps(json_data, ensure_ascii=False, cls=DjangoJSONEncoder)
         return render(request, "vocab/edit.html", params)
     
