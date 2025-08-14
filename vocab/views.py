@@ -30,7 +30,7 @@ class EditView(LoginRequiredMixin, TemplateView):
         params["word_lists"] = word_lists.exclude(id=target_word_list.id)
 
         json_data = {
-            "words": [model_to_dict(word, ["id", "term", "meaning", "latest_edited_by"]) for word in params["words"]],
+            "words": [model_to_dict(word, ["id", "number", "term", "meaning", "latest_edited_by"]) for word in params["words"]],
             "target_wordlist": model_to_dict(params["target_word_list"], ["id", "name"]),
             "wordlists": [model_to_dict(wordlist, ["id", "name"]) for wordlist in params["word_lists"]],
         }

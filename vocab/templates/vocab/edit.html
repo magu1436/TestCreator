@@ -38,16 +38,7 @@
             <div class="p-2 border word-edited-by">最終更新者</div>
         </header>
 
-        <div id="word-table-content" class="flex-grow-1 overflow-auto">
-            {% for word in words %}
-            <div class="word-row d-flex flex-row flex-shrink-0" data-id="{{word.id}}" data-number="{{word.number}}">
-                <div class="p-2 border word-number">{{word.number}}</div>
-                <div class="p-2 border word-term">{{word.term}}</div>
-                <div class="p-2 border word-meaning overflow-auto">{{word.meaning}}</div>
-                <div class="p-2 border word-edited-by">{{word.latest_edited_by}}</div>
-            </div>
-            {% endfor %}
-        </div>
+        <div id="word-table-content" class="flex-grow-1 overflow-auto"></div>
     </div>
 
     <div id="buttons" class="d-flex flex-row gap-2 flex-shrink-0 mb-2">
@@ -79,7 +70,9 @@
 <script>
     const data = JSON.parse('{{ json_data | safe}}');
 </script>
+<script src="{% static 'vocab/js/utilities.js' %}"></script>
 <script src="{% static 'vocab/js/edit.js' %}"></script>
+<script src="{% static 'vocab/js/word.js' %}"></script>
 <script src="{% static 'vocab/js/wordlist.js' %}"></script>
 
 {% endblock %}
