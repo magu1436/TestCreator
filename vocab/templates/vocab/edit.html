@@ -69,6 +69,12 @@
 {% block loadjs %}
 <script>
     const data = JSON.parse('{{ json_data | safe}}');
+    const appUrls = {
+        "vocab:editor": "{% url 'vocab:editor' %}",
+        "vocab:register": "{% url 'vocab:register' %}",
+        "wordbank:create": "{% url 'wordbank:create' %}",
+        "wordbank:delete": "{% url 'wordbank:delete' %}",
+    };
 </script>
 <script src="{% static 'vocab/js/utilities.js' %}"></script>
 <script src="{% static 'vocab/js/edit.js' %}"></script>

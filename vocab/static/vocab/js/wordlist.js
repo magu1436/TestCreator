@@ -48,13 +48,13 @@ for(let wordlist of data.wordlists){
  * 入力された単語名の単語帳を作成して, 作成した単語帳の編集画面へ遷移する関数.
  * @param {ButtonElement} button 押下されたボタンの要素
  */
-function createNewWordlist(button){
+function createNewWordlist(){
     const wordlistName = document.getElementById("new-wordlist").value.trim();
 
     const formData = new FormData();
     formData.append("name", wordlistName);
 
-    fetch(button.dataset.appUrl, {
+    fetch(appUrls["wordbank:create"], {
         method: "POST",
         headers: {
             "X-CSRFToken": getCSRFToken(),
@@ -88,7 +88,7 @@ function createNewWordlist(button){
 
 
 // 単語帳削除機能
-function deleteWordlist(button){
+function deleteWordlist(){
 
     const targetWordlistName = document.getElementById("delete-target-wordlist").textContent.trim();
     const userInputWordlistName = document.getElementById("delete-target-wordlist-input").value.trim();
@@ -98,7 +98,7 @@ function deleteWordlist(button){
         return;
     }
 
-    fetch(button.dataset.appUrl, {
+    fetch(appUrls["wordbank:delete"], {
         method: "POST",
         headers: {
             "X-CSRFToken": getCSRFToken(),
@@ -117,7 +117,7 @@ function deleteWordlist(button){
     })
     .then((response) => {
         alert(`「${data.target_wordlist.name}」を削除しました。`)
-        location.href = "/vocab/editor/";
+        location.href = appUrls["vocab:editor"];
     })
     .catch((err) => {
         if (err.messages !== "delete_failed"){

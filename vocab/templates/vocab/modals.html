@@ -15,7 +15,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-primary" onclick="createNewWordlist(this)" data-app-url="{% url 'wordbank:create' %}">作成する</button>
+                <button type="button" class="btn btn-primary" onclick="createNewWordlist()">作成する</button>
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-danger" onclick="deleteWordlist(this)" data-app-url="{% url 'wordbank:delete' %}">削除する</button>
+                <button type="button" class="btn btn-danger" onclick="deleteWordlist()">削除する</button>
             </div>
         </div>
     </div>
@@ -72,7 +72,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="hideRegisterWordSuccessMessage()" data-bs-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-danger" onclick="registerWord(this)" data-app-url="{% url 'vocab:register' %}">追加する</button>
+                <button type="button" class="btn btn-danger" onclick="registerWord()">追加する</button>
             </div>
         </div>
     </div>

@@ -114,7 +114,7 @@ function hideRegisterWordSuccessMessage(){
 /**
  * 単語追加モーダルから値を取得してデータベースに登録し, テーブルに追加する関数.  
  */
-function registerWord(button){
+function registerWord(){
     const wordlistId = document.getElementById("current-wordlist").dataset.id;
 
     const formData = new FormData();
@@ -125,7 +125,7 @@ function registerWord(button){
 
     const csrftoken = Cookies.get("csrftoken")
 
-    fetch(button.dataset.appUrl, {
+    fetch(appUrls["vocab:register"], {
         method: "POST",
         headers: {
             "X-CSRFToken": csrftoken,
