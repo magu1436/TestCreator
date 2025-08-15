@@ -5,10 +5,23 @@ OCR画面
 {% endblock %}
 
 {% block loadcss %}
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js" defer></script>
 {% endblock %}
 
 {% block content %}
+<form id="upload-form">
+    <input type="file" id="file-input" name="files" multiple>
+    <button type="submit" class="btn btn-secondary">アップロード</button>
+</form>
 {% endblock %}
 
 {% block loadjs %}
+<script>
+    const appUrls = {
+        "ocr:ocr": "{% url 'ocr:ocr' %}",
+    }
+</script>
+<script src="{% static 'ocr/js/utilities.js' %}"></script>
+<script src="{% static 'ocr/js/interface.js' %}"></script>
 {% endblock %}
