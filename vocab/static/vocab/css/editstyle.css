@@ -1,7 +1,10 @@
 
+.word-checkbox-div {
+    width: 5%;
+}
 
 .word-number {
-    width: 10%;
+    width: 5%;
 }
 
 .word-term {
@@ -16,10 +19,17 @@
     width: 20%;
 }
 
+
 .wordlist-btn {
     width: 16%;
 }
 
 .word-btn {
     width: 16%;
+}
+
+.selected-word-row {
+  outline: 2px solid #f7c948;           /* はっきりした黄枠 */
+  outline-offset: -2px;                  /* 枠を内側に */
+  background-color: #fff8e1;             /* うっすら黄色背景 */
 }

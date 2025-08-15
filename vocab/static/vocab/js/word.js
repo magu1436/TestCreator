@@ -22,6 +22,20 @@ function createWordRowElement(id, number, term, meaning, editor){
     wordRow.dataset.id = id;
     wordRow.dataset.number = number;
 
+    let wordCheckboxDiv = Object.assign(document.createElement("div"), {
+        className: "word-checkbox-div"
+    })
+    let wordCheckbox = Object.assign(document.createElement("input"), {
+        type: "checkbox",
+        className: "word-checkbox",
+    });
+    wordCheckbox.dataset.id = id;
+    wordCheckbox.addEventListener("change", function(){
+        let wr = getWordRowFromId(this.dataset.id);
+        toggleWordRowSelected(wr, this.checked);
+    })
+    wordCheckboxDiv.appendChild(wordCheckbox);
+
     let wordNumber = Object.assign(document.createElement("div"), {
         className: "word-number",
         textContent: number,
@@ -42,7 +56,7 @@ function createWordRowElement(id, number, term, meaning, editor){
         textContent: editor,
     })
 
-    let rowChildren = [wordNumber, wordTerm, wordMeaning, wordEditedBy];
+    let rowChildren = [wordCheckboxDiv, wordNumber, wordTerm, wordMeaning, wordEditedBy];
     rowChildren.forEach(child => {
         wordRowChildrenClassNames.forEach(className => {
             child.classList.add(className);
@@ -82,6 +96,15 @@ function insertWordRow(id, number, term, meaning, editor, apply_search = true){
         searchWord();
     }
 }
+
+function getWordRowFromId(id){
+    let id_str = String(id)
+    for(let row of document.getElementsByClassName("word-row")){
+        if(id_str == row.dataset.id) return row;
+    }
+    return null;
+}
+
 
 // 単語テーブルに単語を追加する初期化処理
 data.words.forEach(word => {
@@ -180,4 +203,23 @@ function registerWord(){
                 alert("通信エラーが発生しました!");
             }
         })
+}
+
+
+// 単語削除機能関連
+
+document.getElementById("all-word-checkbox").addEventListener("change", function(){
+    for(let checkbox of document.getElementsByClassName("word-checkbox")){
+        checkbox.checked = this.checked;
+        checkbox.dispatchEvent(new Event("change"));
+    }
+})
+
+/**
+ * 単語行要素の選択状態を変更する関数.
+ * @param {HTMLDivElement} wordRow 単語テーブルの行要素
+ * @param {boolean} isSelected 選択状態かどうか
+ */
+function toggleWordRowSelected(wordRow, isSelected){
+    wordRow.classList.toggle("selected-word-row", isSelected);
 }

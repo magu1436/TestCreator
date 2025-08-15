@@ -32,6 +32,9 @@
 
     <div id="word-table" class="d-flex flex-column flex-grow-1 overflow-auto mb-2">
         <header class="d-flex flex-row flex-shrink-0">
+            <div class="p-2 border word-checkbox-div">
+                <input type="checkbox" id="all-word-checkbox">
+            </div>
             <div class="p-2 border word-number">単語番号</div>
             <div class="p-2 border word-term">単語</div>
             <div class="p-2 border word-meaning">意味</div>
@@ -45,7 +48,7 @@
         <button type="button" class="btn btn-secondary text-center word-btn" data-bs-toggle="modal" data-bs-target="#create-wordlist-modal">
             単語帳新規作成
         </button>
-        <button type="button" class="btn btn-secondary text-center word-btn" data-bs-toggle="modal" data-bs-target="#delete-wordlist-modal">
+        <button type="button" class="btn btn-secondary text-center word-btn me-auto" data-bs-toggle="modal" data-bs-target="#delete-wordlist-modal">
             単語帳を削除
         </button>
         <a href="#" class="btn btn-secondary text-center word-btn">
