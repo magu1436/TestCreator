@@ -223,3 +223,48 @@ document.getElementById("all-word-checkbox").addEventListener("change", function
 function toggleWordRowSelected(wordRow, isSelected){
     wordRow.classList.toggle("selected-word-row", isSelected);
 }
+
+/**
+ * 単語削除用モーダルを表示する関数.  
+ * 選択された単語をモーダルのテーブルに追加してから表示を行う.  
+ * 選択された単語がない場合, アラートを表示してモーダルは開かない.
+ */
+function showDeleteWordsModal(){
+    const selectedWordRows = document.getElementsByClassName("selected-word-row");
+    const tableBodyElem = document.getElementById("delete-words-table-body");
+
+    if(selectedWordRows.length === 0){
+        alert("単語が選択されていません。");
+        return;
+    }
+
+    // 初期化
+    while(tableBodyElem.firstChild){
+        tableBodyElem.removeChild(tableBodyElem.firstChild);
+    }
+
+    for(const wordRow of selectedWordRows){
+        const number = wordRow.dataset.number;
+        const term = wordRow.getElementsByClassName("word-term")[0].textContent;
+        const meaning = wordRow.getElementsByClassName("word-meaning")[0].textContent;
+        const tr = document.createElement("tr");
+        const values = [
+            Object.assign(document.createElement("th"), {
+                scope: "row",
+                textContent: number,
+            }),
+            Object.assign(document.createElement("td"), {
+                textContent: term,
+            }),
+            Object.assign(document.createElement("td"), {
+                textContent: meaning,
+            })
+        ];
+        values.forEach(v => {
+            tr.appendChild(v);
+        });
+        tableBodyElem.appendChild(tr);
+    }
+
+    (new bootstrap.Modal("#delete-words-modal")).show();
+}

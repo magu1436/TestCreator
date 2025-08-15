@@ -77,3 +77,49 @@
         </div>
     </div>
 </div>
+
+
+<!-- 単語削除モーダル -->
+<div id="delete-words-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="motdal-title">単語を削除</h5>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <caption>削除する単語一覧</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">番号</th>
+                            <th scope="col">単語</th>
+                            <th scope="col">意味</th>
+                        </tr>
+                    </thead>
+                    <tbody id="delete-words-table-body"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-words-modal-re">削除する</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="delete-words-modal-re" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="motdal-title">単語を削除</h5>
+            </div>
+            <div class="modal-body">
+                <h2 style="color: red;">変更は取り消せません。</h2>
+                <h3>本当に削除してよろしいですか？</h3>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-danger" onclick="deleteWords()">削除する</button>
+            </div>
+        </div>
+    </div>
+</div>
