@@ -40,7 +40,7 @@ class DeleteView(TemplateView):
                 word.delete()
             wordlist.delete()
         except ProtectedError:
-            JsonResponse(
+            return JsonResponse(
                 {"ok": False, "error": "他のデータが参照しているため, 一部または全てのレコードを削除できません."},
                 status=409
             )

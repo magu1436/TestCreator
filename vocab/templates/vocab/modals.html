@@ -113,12 +113,12 @@
                 <h5 class="motdal-title">単語を削除</h5>
             </div>
             <div class="modal-body">
-                <h2 style="color: red;">変更は取り消せません。</h2>
+                <h2 style="color: red;">この変更は取り消せません。</h2>
                 <h3>本当に削除してよろしいですか？</h3>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
-                <button type="button" class="btn btn-danger" onclick="deleteWords()">削除する</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="deleteWords()">削除する</button>
             </div>
         </div>
     </div>

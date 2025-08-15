@@ -268,3 +268,45 @@ function showDeleteWordsModal(){
 
     (new bootstrap.Modal("#delete-words-modal")).show();
 }
+
+
+/**
+ * 選択されている単語を削除する関数.  
+ * サーバーとやり取りしてデータベースから削除し, HTML側の該当する単語行要素を削除する
+ */
+function deleteWords(){
+    const ids = []
+    for(let wordRow of document.getElementsByClassName("selected-word-row")){
+        ids.push(Number(wordRow.dataset.id));
+    }
+
+    fetch(appUrls["vocab:delete"], {
+        method: "POST",
+        headers: {"X-CSRFToken": getCSRFToken()},
+        body: JSON.stringify({"ids": ids})
+    })
+    .then(async (res) => {
+        const resData = await res.json().catch(() => ({}));
+
+        if (!res.ok || resData.ok === false){
+            const err = resData || resData.err;
+            alert(err || "何らかのエラーが発生しました.");
+            throw new Error("delete_failed");
+        }
+        return resData;
+    })
+    .then((res) => {
+        alert("選択された単語を削除しました。");
+
+        const wordTable = document.getElementById("word-table-content");
+        for(const wordRow of document.getElementsByClassName("selected-word-row")){
+            wordTable.removeChild(wordRow);
+        }
+    })
+    .catch((err) => {
+        if (err.message !== "delete_failed"){
+            console.log(err);
+            alert("通信エラーが発生しました！");
+        }
+    })
+}
