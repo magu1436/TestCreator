@@ -27,6 +27,7 @@ function searchWord(){
             const meaning = row.querySelector(".word-meaning").textContent.toLowerCase();
             if(!term.includes(word) && !meaning.includes(word)){
                 setVisible(row, false);
+                toggleWordRowSelected(row, false);
                 break;
             }
         }
@@ -35,7 +36,8 @@ function searchWord(){
 
 /**
  * 単語番号が指定されている場合に, その範囲内の番号の単語のみを表示する.  
- * startの入力がない場合は0, endの入力がない場合は正の無限大として処理を行う.
+ * startの入力がない場合は0, endの入力がない場合は正の無限大として処理を行う.  
+ * 選択状態の単語行要素が範囲外となったとき, 選択状態を解除する.  
  * @returns {void}
  */
 function applyRangedNumberFilter(){
@@ -48,8 +50,10 @@ function applyRangedNumberFilter(){
 
     if (startNum <= endNum){
         for(let row of rows){
-            let wordNumber = Number(row.dataset.number);
-            setVisible(row, (startNum <= wordNumber && wordNumber <= endNum));
+            const wordNumber = Number(row.dataset.number);
+            const isInRange = (startNum <= wordNumber && wordNumber <= endNum)
+            setVisible(row, isInRange);
+            if (!isInRange) toggleWordRowSelected(row, false);
         }
     }
 }

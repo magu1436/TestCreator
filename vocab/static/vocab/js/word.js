@@ -208,6 +208,7 @@ function registerWord(){
 
 // 単語削除機能関連
 
+// 全単語のチェックボックスを操作するチェックボックスのchangeイベントで発火する関数.
 document.getElementById("all-word-checkbox").addEventListener("change", function(){
     for(let checkbox of document.getElementsByClassName("word-checkbox")){
         checkbox.checked = this.checked;
@@ -221,6 +222,7 @@ document.getElementById("all-word-checkbox").addEventListener("change", function
  * @param {boolean} isSelected 選択状態かどうか
  */
 function toggleWordRowSelected(wordRow, isSelected){
+    wordRow.getElementsByClassName("word-checkbox")[0].checked = isSelected;
     wordRow.classList.toggle("selected-word-row", isSelected);
 }
 
