@@ -1,0 +1,29 @@
+{
+  "name": "testcreator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b",
+    "watch": "tsc -b -w",
+    "clean": "git clean -fbX **/static/*/js/dist || true"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magu1436/TestCreator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/magu1436/TestCreator/issues"
+  },
+  "homepage": "https://github.com/magu1436/TestCreator#readme",
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

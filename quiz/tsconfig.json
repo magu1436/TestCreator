@@ -1,0 +1,9 @@
+{
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "./static/quiz/js/src",
+        "outDir": "./static/quiz/js/dist",
+        "composite": true,
+    },
+    "include": ["static/quiz/js/src/**/*.ts"]
+}

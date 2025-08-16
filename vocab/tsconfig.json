@@ -1,0 +1,9 @@
+{
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "./static/vocab/js/src",
+        "outDir": "./static/vocab/js/dist",
+        "composite": true,
+    },
+    "include": ["static/vocab/js/src/**/*.ts"]
+}
