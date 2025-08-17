@@ -23,8 +23,8 @@ OCR画面
       </div>
 
       <!-- 初期状態 / 共通 -->
-      <div class="card-body">
-        <div id="dropzone" class="border border-2 border-dashed rounded-3 p-4 text-center bg-light">
+      <div id="dropzone" class="card-body">
+        <div id="init-dropzone-body" class="border border-2 border-dashed rounded-3 p-4 text-center bg-light">
           <div class="mb-2">
             <i class="bi bi-cloud-upload fs-1"></i>
           </div>
@@ -38,10 +38,11 @@ OCR画面
           </div>
           <p class="text-muted small mt-3">対応: JPEG / PNG、最大 10MB/枚（目安）</p>
         </div>
+        <div id="body-uploaded" class="d-flex flex-column"></div>
 
         <!-- 選択概要 -->
         <div class="d-flex align-items-center justify-content-between mt-3">
-          <div class="small text-muted">合計サイズ: <span id="total-size">0 MB</span></div>
+          <div class="small text-muted">合計サイズ: <span id="total-size">0</span> MB</div>
           <div>
             <button id="upload-btn" class="btn btn-primary" disabled>アップロード開始</button>
           </div>
@@ -56,9 +57,6 @@ OCR画面
             <div class="progress-bar" id="overall-progress" style="width: 0%"></div>
           </div>
         </div>
-
-        <!-- サムネイル一覧（アップロード後状態含む） -->
-        <div class="mt-3" id="thumb-list" aria-live="polite"></div>
       </div>
     </div>
   </div>
