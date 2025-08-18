@@ -1,42 +1,6 @@
 import { getCSRFToken, appUrls } from "./utils.js"
 
 
-
-class Wordlist_ extends HTMLOptionElement{
-
-    static readonly currentWordlistId = "current-wordlist"
-
-    private _wordlistId: number;
-    private _name: string;
-    private _isCurrentWordlist;
-
-    constructor(id: number, name: string, isCurrentWordlist: boolean = false){
-        super();
-        this._wordlistId = id;
-        this._name = name;
-        this._isCurrentWordlist = isCurrentWordlist;
-        this.value = this._name;
-        this.textContent = this._name;
-        if (this._isCurrentWordlist) this.id = Wordlist.currentWordlistId;
-    }
-
-    get wordlistId(){
-        return this._wordlistId;
-    }
-
-    get name(){
-        return this._name;
-    }
-    set name(name: string){
-        this._name = name;
-        this.textContent = this._name;
-    }
-
-    get isCurrentWordlist(){
-        return this._isCurrentWordlist;
-    }
-}
-
 class Wordlist {
     static readonly currentWordlistId = "current-wordlist"
 
@@ -50,6 +14,7 @@ class Wordlist {
         this._name = name;
         this._isCurrentWordlist = isCurrentWordlist;
         this.element = this.createWordlistOptionElement(id, name);
+        if (this.isCurrentWordlist) this.element.selected = true;
     }
 
     protected createWordlistOptionElement(id: number, name: string): HTMLOptionElement{
