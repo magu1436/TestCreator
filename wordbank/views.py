@@ -54,15 +54,11 @@ class ReadView(TemplateView):
         try:
             id = int(json.loads(request.body)["id"])
             wordlist = get_object_or_404(WordList, pk=id)
-            words = [
-                {
-                    "id": w.id, 
-                    "number": w.number, 
-                    "term": w.term, 
-                    "meaning": w.meaning,
-                    "latest_edited_by": w.latest_edited_by,
-                } for w in Word.objects.filter(wordlist=wordlist)
-            ]
+            words = list(
+                Word.objects.filter(wordlist=wordlist)
+                            .values("id", "number", "term", "meaning", "latest_edited_by")
+                            .order_by("number")
+                        )
             return JsonResponse({
                 "ok": True,
                 "name": wordlist.name,
@@ -77,9 +73,9 @@ class ReadView(TemplateView):
 
 
 class GetAllWordlistView(TemplateView):
-    def post(self, request):
-        wordlists = [model_to_dict(wordlist, ["id", "name"]) for wordlist in WordList.objects]
+    def get(self, request):
+        #wordlists = [model_to_dict(wordlist, ["id", "name"]) for wordlist in WordList.objects]
+        wordlists = list(WordList.objects.values("id", "name").order_by("id"))
         return JsonResponse({
-            "ok": True,
             "wordlists": wordlists,
         }, status=200)

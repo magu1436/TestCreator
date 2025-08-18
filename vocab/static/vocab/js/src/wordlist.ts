@@ -2,7 +2,7 @@ import { getCSRFToken, appUrls } from "./utils.js"
 
 
 
-class Wordlist extends HTMLOptionElement{
+class Wordlist_ extends HTMLOptionElement{
 
     static readonly currentWordlistId = "current-wordlist"
 
@@ -37,6 +37,45 @@ class Wordlist extends HTMLOptionElement{
     }
 }
 
+class Wordlist {
+    static readonly currentWordlistId = "current-wordlist"
+
+    readonly element: HTMLOptionElement;
+    private _id: number;
+    private _name: string;
+    private _isCurrentWordlist;
+
+    constructor(id: number, name: string, isCurrentWordlist: boolean = false){
+        this._id = id;
+        this._name = name;
+        this._isCurrentWordlist = isCurrentWordlist;
+        this.element = this.createWordlistOptionElement(id, name);
+    }
+
+    protected createWordlistOptionElement(id: number, name: string): HTMLOptionElement{
+        return Object.assign(document.createElement("option"), {
+            value: name,
+            textContent: name,
+        });
+    }
+
+    get id(){
+        return this._id;
+    }
+
+    get name(){
+        return this._name;
+    }
+    set name(name: string){
+        this._name = name;
+        this.element.textContent = this._name;
+    }
+
+    get isCurrentWordlist(){
+        return this._isCurrentWordlist;
+    }
+}
+
 export class WordlistSelector{
     static readonly selectorId = "wordlist-selector";
 
@@ -52,12 +91,11 @@ export class WordlistSelector{
         }
         const currentWordlistId = Number(this.selectorElement.dataset.id);
         fetch(appUrls["wordbank:all_wordlist"]!, {
-            method: "POST",
-            headers: {"X-CSRFToken": getCSRFToken()},
+            method: "GET",
         })
         .then(async (response) => {
             const resData = await response.json().catch(() => ({}));
-            if (!resData.ok || resData.ok === false){
+            if (!response.ok){
                 const err = resData.error || resData.err;
                 alert(err || "何らかのエラーが発生しました");
                 throw new Error("read_failed");
@@ -65,8 +103,10 @@ export class WordlistSelector{
             return resData;
         })
         .then((response) => {
-            for (let wl of response.wordlists){
-                if (wl.id == currentWordlistId){
+            for (let wlData of response.wordlists){
+                const isCurrentWordlist = (wlData.id == currentWordlistId);
+                const wl = new Wordlist(wlData.id, wlData.name, isCurrentWordlist);
+                if (isCurrentWordlist){
                     this.pushWordlist(wl, 0);
                 } else {
                     this.pushWordlist(wl);
@@ -77,14 +117,14 @@ export class WordlistSelector{
 
     pushWordlist(wordlist: Wordlist, idx: number | null = null){
         if (idx == null || (this.wordlists.length == 0 && idx == 0)){
-            this.selectorElement.appendChild(wordlist);
+            this.selectorElement.appendChild(wordlist.element);
             this.wordlists.push(wordlist);
         } else {
             const afterWordlist = this.wordlists[idx];
             if (afterWordlist == null) {
                 throw new Error(`out of index: ${idx}`);
             }
-            afterWordlist.before(wordlist);
+            afterWordlist.element.before(wordlist.element);
             this.wordlists.splice(idx, 0, wordlist);
         }
     }

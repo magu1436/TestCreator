@@ -70,6 +70,14 @@
 
 
 {% block loadjs %}
+<script type="importmap">
+{
+  "imports": {
+    "@shared/": "{% static 'shared/dist/' %}",
+    "js-cookie": "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.mjs"
+  }
+}
+</script>
 <script>
     const data = JSON.parse('{{ json_data | safe}}');
     const appUrls = {
@@ -81,15 +89,15 @@
     };
 </script>
 <script id="app-urls" type="application/json">
-    {
-        "vocab:editor": "{% url 'vocab:editor' %}",
-        "vocab:register": "{% url 'vocab:register' %}",
-        "vocab:delete": "{% url 'vocab:delete' %}",
-        "wordbank:create": "{% url 'wordbank:create' %}",
-        "wordbank:delete": "{% url 'wordbank:delete' %}",
-        "wordbank:read": "{% url 'wordbank:read' %}",
-        "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}",
-    };
+{
+    "vocab:editor": "{% url 'vocab:editor' %}",
+    "vocab:register": "{% url 'vocab:register' %}",
+    "vocab:delete": "{% url 'vocab:delete' %}",
+    "wordbank:create": "{% url 'wordbank:create' %}",
+    "wordbank:delete": "{% url 'wordbank:delete' %}",
+    "wordbank:read": "{% url 'wordbank:read' %}",
+    "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}"
+}
 </script>
 <script type="module" src="{% static 'vocab/js/dist/edit.js' %}"></script>
 

@@ -6,7 +6,7 @@ function readJsonFromScript<T>(id: string): T {
   return JSON.parse(el.textContent) as T;
 }
 
-export const appUrls = readJsonFromScript<Record<string, string>>("upp-urls")
+export const appUrls = readJsonFromScript<Record<string, string>>("app-urls")
 
 export function getCSRFToken(): string{
     const token = Cookies.get("csrftoken")
