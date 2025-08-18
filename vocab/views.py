@@ -73,3 +73,5 @@ class DeleteView(TemplateView):
             )
         
         return JsonResponse({"ok": True}, status=200)
+
+

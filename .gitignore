@@ -12,3 +12,4 @@ npm-debug.log*
 yarn-*.log*
 
 **/static/*/js/dist/
+**/static/shared/dist/

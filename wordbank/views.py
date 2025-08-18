@@ -3,6 +3,7 @@ import json
 from django.views.generic import TemplateView
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.forms.models import model_to_dict
 from django.db.models.deletion import ProtectedError
 
 from .models import WordList
@@ -46,3 +47,39 @@ class DeleteView(TemplateView):
             )
 
         return JsonResponse({"ok": True, "name": wordlist_name}, status=200)
+
+
+class ReadView(TemplateView):
+    def post(self, request):
+        try:
+            id = int(json.loads(request.body)["id"])
+            wordlist = get_object_or_404(WordList, pk=id)
+            words = [
+                {
+                    "id": w.id, 
+                    "number": w.number, 
+                    "term": w.term, 
+                    "meaning": w.meaning,
+                    "latest_edited_by": w.latest_edited_by,
+                } for w in Word.objects.filter(wordlist=wordlist)
+            ]
+            return JsonResponse({
+                "ok": True,
+                "name": wordlist.name,
+                "words": words,
+            })
+        except Exception as e:
+            print(e)
+            return JsonResponse({
+                "ok": False,
+                "err": e,
+            })
+
+
+class GetAllWordlistView(TemplateView):
+    def post(self, request):
+        wordlists = [model_to_dict(wordlist, ["id", "name"]) for wordlist in WordList.objects]
+        return JsonResponse({
+            "ok": True,
+            "wordlists": wordlists,
+        }, status=200)

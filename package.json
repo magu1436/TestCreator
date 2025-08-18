@@ -8,8 +8,13 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -b",
-    "watch": "tsc -b -w",
+    "build": "tsc && npm run alias:all",
+    "watch": "tsc-watch -b --onSuccess \"npm run alias:all\"",
+    "alias:all": "npm run alias:ocr && npm run alias:vocab && npm run alias:quiz && npm run alias:shared",
+    "alias:ocr": "tsc-alias -p ./ocr/tsconfig.json",
+    "alias:vocab": "tsc-alias -p ./vocab/tsconfig.json",
+    "alias:quiz": "tsc-alias -p ./quiz/tsconfig.json",
+    "alias:shared": "tsc-alias -p ./static/shared/tsconfig.json",
     "clean": "git clean -fbX **/static/*/js/dist || true"
   },
   "repository": {
@@ -24,6 +29,13 @@
   },
   "homepage": "https://github.com/magu1436/TestCreator#readme",
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^24.3.0",
+    "tsc-alias": "^1.8.16",
+    "tsc-watch": "^7.1.1",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "js-cookie": "^3.0.5"
   }
 }

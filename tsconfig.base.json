@@ -33,5 +33,10 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["static/shared/dist/*"]
+    },
   }
 }

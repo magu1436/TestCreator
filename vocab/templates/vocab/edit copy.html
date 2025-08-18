@@ -15,7 +15,7 @@
 {% block content %}
 <div class="d-flex flex-column flex-grow-1 h-100 w-75 mx-auto">
     <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly gap-5 mb-2">
-        <select id="wordlist-selector" class="w-100" onchange="location.href='?target_word_list=' + this.value;" data-id="{{ target_word_list.id }}">
+        <select id="wordlist-selector" class="w-100" onchange="location.href='?target_word_list=' + this.value;" data-id="{{ target-word-list.id }}">
         </select>
 
         <div id="word-number-ranged" class="d-flex">
@@ -66,8 +66,6 @@
 <!-- モーダルを作成するテンプレートのインポート -->
 {% include 'vocab/modals.html' %}
 
-{% endblock %}
-
 
 {% block loadjs %}
 <script>
@@ -91,6 +89,9 @@
         "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}",
     };
 </script>
-<script type="module" src="{% static 'vocab/js/dist/edit.js' %}"></script>
+<script src="{% static 'vocab/js/utilities.js' %}"></script>
+<script src="{% static 'vocab/js/edit.js' %}"></script>
+<script src="{% static 'vocab/js/word.js' %}"></script>
+<script src="{% static 'vocab/js/wordlist.js' %}"></script>
 
 {% endblock %}
