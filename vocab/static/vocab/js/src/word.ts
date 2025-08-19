@@ -1,16 +1,18 @@
-import {SelectableElement} from "@shared/selectable-item.js";
+import {SelectableItem} from "@shared/selectable-item.js";
+import {Wordlist} from "./wordlist.js";
+import {appUrls, getCSRFToken} from "./utils.js";
 
-export class WordRow extends SelectableElement{
+export class WordRow extends SelectableItem {
 
     static readonly uniqueClassName = "word-row";
     static readonly termClassName = "word-term";
     static readonly numberClassName = "word-number";
     static readonly meaningClassName = "word-meaning";
     static readonly editorClassName = "word-edited-by";
-    static readonly contentClassNames = ["d-flex", "flex-row", "flex-shrink-0"];
+    static readonly contentClassNames = ["word-info", "d-flex", "flex-row", "flex-shrink-0"];
     static readonly childrenClassNames = ["p-2", "border", "overflow-auto"];
 
-    readonly wordId: number;
+    readonly id: number;
     readonly numberElement: HTMLDivElement;
     readonly termElement: HTMLDivElement;
     readonly meaningElement: HTMLDivElement;
@@ -18,32 +20,16 @@ export class WordRow extends SelectableElement{
 
     protected _visible = true;
 
-    /**
-     * コンストラクタ
-     * @param id 単語のID
-     * @param wordNum 単語番号
-     * @param term 単語
-     * @param meaning 意味
-     * @param latestEditedBy 最終編集者
-     */
     constructor(id: number, wordNum: number, term: string, meaning: string, latestEditedBy: string){
         const contents = WordRow.createContent(wordNum, term, meaning, latestEditedBy);
-        super(WordRow.uniqueClassName, contents["content"]);
-        this.wordId = id;
+        super(contents["content"]);
+        this.id = id;
         this.numberElement = contents["number"];
         this.termElement = contents["term"];
         this.meaningElement = contents["meaning"];
         this.editorElement = contents["editor"];
     }
 
-    /**
-     * 単語の値を保持する要素を作成するメソッド.
-     * @param num 単語番号
-     * @param term 単語
-     * @param meaning 意味
-     * @param editor 最終編集者
-     * @returns 作成した各要素を保持する辞書
-     */
     protected static createContent(num: number | String, term: String, meaning: String, editor: String){
         const content = document.createElement("div");
         content.classList.add(...WordRow.contentClassNames);
@@ -87,28 +73,28 @@ export class WordRow extends SelectableElement{
         return Number(this.numberElement.textContent);
     }
     set number(num: number){
-        this.numberElement.textContent = String(num);
+        this.numberElement.textContent = String(num).trim();
     }
 
     get term(){
         return this.termElement.textContent;
     }
     set term(term: string){
-        this.termElement.textContent = term;
+        this.termElement.textContent = term.trim();
     }
 
     get meaning(){
         return this.meaningElement.textContent;
     }
     set meaning(meaning: string){
-        this.meaningElement.textContent = meaning;
+        this.meaningElement.textContent = meaning.trim();
     }
 
     get editor(){
         return this.editorElement.textContent;
     }
     set editor(editor: string){
-        this.editorElement.textContent = editor;
+        this.editorElement.textContent = editor.trim();
     }
 
     get isVisible(){
@@ -119,72 +105,100 @@ export class WordRow extends SelectableElement{
     }
 
     setVisible(visible: boolean): this{
-        this.classList.toggle("d-none", !visible);
-        this.classList.toggle("d-flex", visible);
+        this.element.classList.toggle("d-none", !visible);
+        this.element.classList.toggle("d-flex", visible);
         this._visible = visible
         if (!visible) this.toggleSelected(false);
         return this;
     }
-    
 }
 
-export class WordTable{
 
+export class WordTable {
     static readonly tableDivId = "word-table-content";
     readonly tableDivElement: HTMLDivElement;
-    
-    protected _words: WordRow[] = [];
 
-    constructor(...words: WordRow[]){
+    protected _words: WordRow[] = [];
+    readonly wordlistId: number;
+
+    constructor(){
         const elem = document.getElementById(WordTable.tableDivId) as HTMLDivElement | null;
         if(elem == null) throw new Error(`${WordTable.tableDivId} element does not exist.`);
         this.tableDivElement = elem;
-        this._words = this._words.concat(words);
+        const wordlistId = document.getElementById("wordlist-selector")?.dataset.id;
+        if (!wordlistId) throw new Error("wordlist-selector element does not exist.");
+        this.wordlistId = Number(wordlistId);
+        this.createWordTable();
     }
 
-    registerWordRow(wordRow: WordRow): void;
-    registerWordRow(id: number, num: number, term: string, meaning: string, editor: string): void;
-    registerWordRow(wordRowOrId: WordRow | number, num?: number, term?:string, meaning?: string, editor?: string){
-        let wordRow: WordRow;
-        if (
-            !(wordRowOrId instanceof WordRow) && (
-                (num != null) && (term != null) && (meaning != null) && (editor != null)
-            )){
-            wordRow = new WordRow(wordRowOrId, num, term, meaning, editor);
-        } else {
-            wordRow = wordRowOrId as WordRow;
+    protected createWordTable(){
+        const urlName = "wordbank:read"
+        const url = appUrls[urlName];
+        if(!url) throw new Error(`${urlName} app doesn't registered.`);
+        fetch(url, {
+            method: "POST",
+            headers: {"X-CSRFToken": getCSRFToken()},
+            body: JSON.stringify({"id": this.wordlistId})
+        })
+        .then(async (res) => {
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok){
+                const err = data.error || data.err;
+                alert(err || "何らかのエラーが発生しました.");
+                throw new Error("read_failed");
+            }
+
+            return data;
+        })
+        .then((res) => {
+            for (const word of res.words){
+                const wordRow = new WordRow(
+                    word.id,
+                    word.number,
+                    word.term,
+                    word.meaning,
+                    word.latest_edited_by
+                );
+                this.registerWordRow(wordRow);
+            }
+        })
+        .catch((err) => {
+            if (err.message !== "read_failed"){
+                console.error(err);
+                alert("想定外のエラーが生じました!");
+            }
+        })
+    }
+
+    registerWordRow(wordRow: WordRow, checkDuplicate: boolean = true): void{
+        if (checkDuplicate && this._words.includes(wordRow)) {
+            throw new Error("Word must not be registered in duplicate")
         }
 
         for (let i = 0; i < this._words.length; i++){
-            const comparedWordRow = this._words[i];
-            if (comparedWordRow == null || wordRow.wordId < comparedWordRow.wordId){
+            const compared = this._words[i]!    // 中身がないときはfor文が回らないため, undefinedになることはない
+            if (wordRow.id < compared.id){
                 this._words.splice(i, 0, wordRow);
-                comparedWordRow?.before(wordRow);
+                compared.element.before(wordRow.element);
                 break;
             }
         }
         if (!this._words.includes(wordRow)){
             this._words.push(wordRow);
-            this.tableDivElement.appendChild(wordRow);
+            this.tableDivElement.appendChild(wordRow.element);
         }
     }
 
-    getWordRowByWordId(id: number): WordRow | null{
-        this._words.forEach(wr => {
-            if (wr.wordId == id) return wr;
-        });
-        return null;
-    }
-
     get words(): WordRow[]{
-        return this._words.concat()
+        return this._words;
     }
 
     setVisibleByNumber(start: number, end: number){
         const visibleWordRows: WordRow[] = [];
         this._words.forEach(wr => {
-            const isIn = (start <= wr.wordId && wr.wordId <= end)
-            wr.setVisible(isIn)
+            const isIn = (start <= wr.id && wr.id <= end);
+            wr.setVisible(isIn);
             if (isIn) visibleWordRows.push(wr);
         })
         return visibleWordRows;
@@ -194,7 +208,7 @@ export class WordTable{
         this._words.forEach(wr => {
             wr.setVisible(true);
             for (const k of keys){
-                if (!(wr.term.includes(k) || wr.meaning.includes(k) || wr.editor.includes(k))){
+                if (!wr.term.includes(k) && !wr.meaning.includes(k) && !wr.editor.includes(k)){
                     wr.setVisible(false);
                     wr.toggleSelected(false);
                     break;
@@ -203,5 +217,4 @@ export class WordTable{
         })
         return this._words.filter(wr => {wr.isVisible});
     }
-
 }

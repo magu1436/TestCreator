@@ -2,7 +2,10 @@
 import {WordTable} from "./word.js";
 import {WordlistSelector} from "./wordlist.js"
 
+
+const wordlistSelector = new WordlistSelector();
 const wordTable = new WordTable();
+
 
 const startRangeElementId = "start-range";
 const endRangeElementId = "end-range";
@@ -55,6 +58,3 @@ const onRangedByNumber = () => {
 
 startRangeElement.addEventListener("change", onRangedByNumber);
 endRangeElement.addEventListener("change", onRangedByNumber);
-
-
-const wordlistSelector = new WordlistSelector();

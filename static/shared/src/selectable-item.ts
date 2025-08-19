@@ -1,39 +1,43 @@
 
-
-export class SelectableElement extends HTMLDivElement {
+export class SelectableItem {
 
     static readonly selectableElementClassName = "selectable-element";
     static readonly selectedElemClassName = "selected";
     static readonly selectedElementOtherClasses = ["d-flex", "flex-row", "flex-shrink-0", "border"];
     static readonly checkboxClassName = "select-checkbox";
     static readonly checkboxOtherClasses = ["p-2", "border-end"];
-    name: String;
+    readonly element: HTMLDivElement;
     readonly checkbox: HTMLInputElement;
-    content: HTMLElement;
+    private _content: HTMLElement | Node | null;
     private _isSelected: boolean;
 
-    constructor(name: String, content: HTMLElement, isSelected: boolean = false){
-        super();
-        this.name = name;
+    constructor(content: HTMLElement | Node | null = null, isSelected: boolean = false){
         this._isSelected = isSelected;
-        this.content = content
-        this.addClassName(...[
-            String(name),
-            SelectableElement.selectableElementClassName,
-            ...SelectableElement.selectedElementOtherClasses,
-        ])
-
+        this._content = content;
         this.checkbox = this.createCheckbox();
-        this.appendChild(this.checkbox);
-        this.appendChild(content);
+        this.element = this.createSelectableDivElement();
+
     }
 
+    protected createSelectableDivElement(){
+        const divElem = document.createElement("div");
+        divElem.classList.add(
+            SelectableItem.selectableElementClassName,
+            ...SelectableItem.selectedElementOtherClasses,
+        );
+        divElem.appendChild(this.checkbox);
+        if (this._content) {
+            divElem.appendChild(this._content);
+        }
+        return divElem;
+    }
+    
     protected createCheckbox(): HTMLInputElement{
         const checkbox = Object.assign(document.createElement("input"), {
             type: "checkbox",
-            className: SelectableElement.checkboxClassName,
+            className: SelectableItem.checkboxClassName,
         })
-        checkbox.classList.add(...SelectableElement.checkboxOtherClasses);
+        checkbox.classList.add(...SelectableItem.checkboxOtherClasses);
         checkbox.addEventListener("change", this.onCheck);
         return checkbox;
     }
@@ -46,14 +50,14 @@ export class SelectableElement extends HTMLDivElement {
         this.toggleSelected(checkbox.checked);
     }
 
-    addClassName(...tokens: string[]): this{
-        this.classList.add(...tokens);
+    addClassName(...tokens: string[]): this {
+        this.element.classList.add(...tokens);
         return this;
     }
 
     toggleSelected(isSelected: boolean): this{
         this._isSelected = isSelected
-        this.classList.toggle(SelectableElement.selectedElemClassName, isSelected);
+        this.element.classList.toggle(SelectableItem.selectedElemClassName, isSelected);
         return this;
     }
 

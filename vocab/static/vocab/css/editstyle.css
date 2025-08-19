@@ -3,8 +3,12 @@
     width: 5%;
 }
 
+.word-info {
+    width: 95%;
+}
+
 .word-number {
-    width: 5%;
+    width: 10%;
 }
 
 .word-term {

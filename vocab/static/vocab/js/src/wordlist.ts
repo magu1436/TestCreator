@@ -1,7 +1,7 @@
 import { getCSRFToken, appUrls } from "./utils.js"
 
 
-class Wordlist {
+export class Wordlist {
     static readonly currentWordlistId = "current-wordlist"
 
     readonly element: HTMLOptionElement;
@@ -45,7 +45,7 @@ export class WordlistSelector{
     static readonly selectorId = "wordlist-selector";
 
     readonly selectorElement: HTMLSelectElement;
-    readonly wordlists: Wordlist[] = []
+    readonly wordlists: Wordlist[] = [];
 
     constructor(){
         const elem = document.getElementById(WordlistSelector.selectorId) as HTMLSelectElement | null;
@@ -94,8 +94,11 @@ export class WordlistSelector{
         }
     }
 
-    getCurrentWordList(){
-        return this.wordlists[0]
+    get currentWordlist(): Wordlist | null{
+        this.wordlists.forEach(wl => {
+            if (wl.isCurrentWordlist) return wl;
+        });
+        return null;
     }
 }
 
