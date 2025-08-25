@@ -9,7 +9,7 @@ export class WordRow extends SelectableItem {
     static readonly numberClassName = "word-number";
     static readonly meaningClassName = "word-meaning";
     static readonly editorClassName = "word-edited-by";
-    static readonly contentClassNames = ["word-info", "d-flex", "flex-row", "flex-shrink-0"];
+    static readonly contentClassNames = ["d-flex", "flex-row", "flex-shrink-0"];
     static readonly childrenClassNames = ["p-2", "border", "overflow-auto"];
 
     readonly id: number;

@@ -1,6 +1,13 @@
 
+/* selectable-item */
 .selectable-element.selected {
     outline: 2px solid #f7c948;
     outline-offset: -2px;                  /* 枠を内側に */
     background-color: #fff8e1;
+}
+.checkbox-div {
+    width: 5%;
+}
+.selectable-element-content {
+    width: 95%;
 }

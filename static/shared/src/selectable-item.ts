@@ -4,20 +4,20 @@ export class SelectableItem {
     static readonly selectableElementClassName = "selectable-element";
     static readonly selectedElemClassName = "selected";
     static readonly selectedElementOtherClasses = ["d-flex", "flex-row", "flex-shrink-0", "border"];
+    static readonly contentClassName = "selectable-element-content";
     static readonly checkboxClassName = "select-checkbox";
     static readonly checkboxDivName = "checkbox-div";
     static readonly checkboxOtherClasses = ["p-2", "border-end"];
     readonly element: HTMLDivElement;
     readonly checkbox: HTMLDivElement;
-    private _content: HTMLElement | Node | null;
+    private _content: HTMLElement | null = null;
     private _isSelected: boolean;
 
-    constructor(content: HTMLElement | Node | null = null, isSelected: boolean = false){
+    constructor(content: HTMLElement | null = null, isSelected: boolean = false){
         this._isSelected = isSelected;
-        this._content = content;
+        this.content = content;
         this.checkbox = this.createCheckbox();
         this.element = this.createSelectableDivElement();
-
     }
 
     protected createSelectableDivElement(){
@@ -72,5 +72,15 @@ export class SelectableItem {
 
     set isSelected(isSelected: boolean){
         this.toggleSelected(isSelected);
+    }
+
+    get content(){
+        return this._content;
+    }
+
+    set content(content: HTMLElement | null){
+        if (this._content != null)this.element.removeChild(this._content);
+        if (content != null)content.classList.add(SelectableItem.contentClassName);
+        this._content = content;
     }
 }
