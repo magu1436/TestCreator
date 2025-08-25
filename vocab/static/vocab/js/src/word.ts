@@ -29,6 +29,14 @@ export class WordRow extends SelectableItem {
         this.editorElement = contents["editor"];
     }
 
+    /**
+     * contentを作成して返す関数. 主に初期化処理で使用する.  
+     * @param num 単語番号
+     * @param term 単語
+     * @param meaning 意味
+     * @param editor 最終更新者
+     * @returns それぞれのHTML要素を保持する辞書
+     */
     protected static createContent(num: number | String, term: String, meaning: String, editor: String){
         const content = document.createElement("div");
         content.classList.add(...WordRow.contentClassNames);
@@ -103,6 +111,11 @@ export class WordRow extends SelectableItem {
         this.setVisible(visible);
     }
 
+    /**
+     * 可視化状態をセットするメソッド.  
+     * @param visible 可視化するかどうか. Trueで見えるようにする.  
+     * @returns 自身のインスタンス
+     */
     setVisible(visible: boolean): this{
         this.element.classList.toggle("d-none", !visible);
         this.element.classList.toggle("d-flex", visible);
@@ -130,6 +143,9 @@ export class WordTable {
         this.createWordTable();
     }
 
+    /**
+     * 単語テーブルを作成する初期化処理.
+     */
     protected createWordTable(){
         const urlName = "wordbank:read"
         const url = appUrls[urlName];
@@ -170,6 +186,15 @@ export class WordTable {
         })
     }
 
+    /**
+     * 単語テーブルに単語を登録するメソッド.  
+     * 追加する単語の番号を参照して, 昇順になるように挿入する.  
+     * デフォルトではIDをもとに引数で受け取った `wordRow` がすでに登録されていないか判定し,  
+     * 既に同じ単語行が登録されている場合はエラーを投げる.  
+     * サーバーとのやり取りは行わない.  
+     * @param wordRow 単語の行要素
+     * @param checkDuplicate 同じ単語が登録されていないかチェックするかどうか.
+     */
     registerWordRow(wordRow: WordRow, checkDuplicate: boolean = true): void{
         if (checkDuplicate && this._words.includes(wordRow)) {
             throw new Error("Word must not be registered in duplicate")
@@ -193,6 +218,12 @@ export class WordTable {
         return this._words;
     }
 
+    /**
+     * 指定の単語番号の範囲の単語行のみを可視化する関数.  
+     * @param start 範囲の最初の数字
+     * @param end 範囲の終端の数字(自身含む)
+     * @returns {WordRow[]} 可視化されている `WordRow` オブジェクトの配列
+     */
     setVisibleByNumber(start: number, end: number){
         const visibleWordRows: WordRow[] = [];
         this._words.forEach(wr => {
@@ -203,6 +234,11 @@ export class WordTable {
         return visibleWordRows;
     }
 
+    /**
+     * 特定のキーワードを含む単語のみを可視化させるメソッド.
+     * @param keys 検索キーワード
+     * @returns {WordRow[]} 可視化されている `WordRow` 配列
+     */
     setVisibleByKeywords(...keys: string[]){
         this._words.forEach(wr => {
             wr.setVisible(true);
