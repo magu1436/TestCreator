@@ -54,8 +54,10 @@ const onSearch = () => {
  * 選択状態の単語行要素が範囲外となったとき, 選択状態を解除する.  
  */
 const onRangedByNumber = () => {
-    let start = Number(startRangeElement.value) ?? 0;
-    let end = Number(endRangeElement.value) ?? Infinity;
+    let start = startRangeElement.valueAsNumber;
+    if (Number.isNaN(start)) start = 0;
+    let end = endRangeElement.valueAsNumber;
+    if (Number.isNaN(end)) end = Infinity;
     wordTable.setVisibleByNumber(start, end);
 }
 

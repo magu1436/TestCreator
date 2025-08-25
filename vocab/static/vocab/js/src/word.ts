@@ -258,7 +258,7 @@ export class WordTable {
     setVisibleByNumber(start: number, end: number){
         const visibleWordRows: WordRow[] = [];
         this._words.forEach(wr => {
-            const isIn = (start <= wr.id && wr.id <= end);
+            const isIn = (start <= wr.number && wr.number <= end);
             wr.setVisible(isIn);
             if (isIn) visibleWordRows.push(wr);
         })
