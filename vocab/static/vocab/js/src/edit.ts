@@ -82,16 +82,17 @@ function setRegisterWordSuccessMessage(number: number, term: string){
  * 単語登録成功時に表示されるdiv要素の表示状態を変更する関数.
  * @param {boolean} 表示するかどうか.
  */
-function setRegisterSuccessMessageVisible(visible: boolean){
+export function setRegisterSuccessMessageVisible(visible: boolean){
     registerSuccessMessageElem!.classList.toggle("d-none", !visible);
 }
 
-function registerWord(){
+export function registerWord(){
+
     const formData = new FormData();
     formData.append("number", addedNumberElem.value.trim())
     formData.append("term", addedTermElem.value.trim())
     formData.append("meaning", addedMeaningElem.value.trim())
-    formData.append("wordlist", String(wordlistSelector.currentWordlist!.id));
+    formData.append("wordlist", String(wordlistSelector.currentWordlist.id));
 
     fetch(appUrls["vocab:register"]!, {
         method: "POST",

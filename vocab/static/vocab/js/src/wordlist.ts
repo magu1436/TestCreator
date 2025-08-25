@@ -94,11 +94,11 @@ export class WordlistSelector{
         }
     }
 
-    get currentWordlist(): Wordlist | null{
-        this.wordlists.forEach(wl => {
-            if (wl.isCurrentWordlist) return wl;
-        });
-        return null;
+    get currentWordlist(): Wordlist{
+        const currentWordlists = this.wordlists.filter((wl) => {return wl.isCurrentWordlist});
+        if (currentWordlists.length == 0) throw new Error("Current wordlist does not recognized.");
+        if (currentWordlists.length != 1) throw new Error("Current wordlist are recognized more than 1.");
+        return currentWordlists[0] as Wordlist;
     }
 }
 
