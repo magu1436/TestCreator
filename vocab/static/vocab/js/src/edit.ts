@@ -65,6 +65,21 @@ startRangeElement.addEventListener("change", onRangedByNumber);
 endRangeElement.addEventListener("change", onRangedByNumber);
 
 
+// 単語帳追加機能
+export const createNewWordlist = async () => {
+    const wordlistName = (document.getElementById("new-wordlist") as HTMLInputElement).value.trim();
+    if (!wordlistName) {
+        alert("単語帳の名前を入力してください");
+        return;
+    }
+    const formData = new FormData();
+    formData.append("name", wordlistName);
+
+    const data = await runPostMethod(appUrls["wordbank:create"]!, formData);
+    location.href = "?target_word_list=" + data.name;
+}
+
+
 // 単語追加機能
 
 const addedNumberElem = document.getElementById("added-word-number") as HTMLInputElement;
