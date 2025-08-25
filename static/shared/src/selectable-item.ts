@@ -37,11 +37,11 @@ export class SelectableItem {
         const checkboxDiv = Object.assign(document.createElement("div"), {
             className: SelectableItem.checkboxDivName
         });
+        checkboxDiv.classList.add(...SelectableItem.checkboxOtherClasses);
         const checkbox = Object.assign(document.createElement("input"), {
             type: "checkbox",
             className: SelectableItem.checkboxClassName,
         });
-        checkbox.classList.add(...SelectableItem.checkboxOtherClasses);
         checkbox.addEventListener("change", this.onCheck);
         checkboxDiv.appendChild(checkbox);
         return checkboxDiv;
