@@ -1,5 +1,4 @@
 import {SelectableItem} from "@shared/selectable-item.js";
-import {Wordlist} from "./wordlist.js";
 import {appUrls, getCSRFToken} from "./utils.js";
 
 export class WordRow extends SelectableItem {
