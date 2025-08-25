@@ -53,7 +53,14 @@ class RegisterView(TemplateView):
             word = form.save(commit=False)
             word.latest_edited_by = self.request.user
             word.save()
-            return JsonResponse({"ok": True, "id": word.id, "editor": self.request.user.username}, status=201)
+            return JsonResponse({
+                "ok": True, 
+                "id": word.id, 
+                "number": word.number,
+                "term": word.term,
+                "meaning": word.meaning,
+                "editor": self.request.user.username
+                }, status=201)
         else:
             return JsonResponse({"ok": False, "error": form.errors}, status=400)
 
