@@ -29,8 +29,10 @@
   },
   "homepage": "https://github.com/magu1436/TestCreator#readme",
   "devDependencies": {
+    "@types/bootstrap": "^5.2.10",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^24.3.0",
+    "bootstrap": "^5.3.0",
     "tsc-alias": "^1.8.16",
     "tsc-watch": "^7.1.1",
     "typescript": "^5.9.2"

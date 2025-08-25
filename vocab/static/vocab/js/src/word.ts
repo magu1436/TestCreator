@@ -1,5 +1,5 @@
 import {SelectableItem} from "@shared/selectable-item.js";
-import {appUrls, getCSRFToken} from "./utils.js";
+import {appUrls, getCSRFToken, runPostMethod} from "./utils.js";
 
 export class WordRow extends SelectableItem {
 
@@ -214,8 +214,36 @@ export class WordTable {
         }
     }
 
-    get words(): WordRow[]{
+    /**
+     * 単語を単語テーブルから削除するメソッド.
+     * @param id 単語のid
+     */
+    removeWordRow(id: number): WordRow;
+    /**
+     * 単語行を単語テーブルから削除するメソッド.
+     * @param wordRow 単語の行要素
+     */
+    removeWordRow(wordRow: WordRow): WordRow;
+    removeWordRow(id_or_wordRow: number | WordRow){
+        const id = (typeof id_or_wordRow == "number") ? id_or_wordRow : id_or_wordRow.id;
+        const targetWordRow = this._words.find(wr => wr.id == id);
+        if (targetWordRow == null) throw new Error(`No word have id: ${id}`);
+        this._words = this._words.filter(wr => wr !== targetWordRow);
+        const removedWordRow = this.tableDivElement.removeChild(targetWordRow.element);
+        if (!removedWordRow) throw new Error("Removing wordRow from table was failed.");
+        return targetWordRow;
+    }
+
+    removeAllSelectedWord(){
+        this.selectedWords.forEach(wr => this.removeWordRow(wr));
+    }
+
+    get words(): ReadonlyArray<WordRow>{
         return this._words;
+    }
+
+    get selectedWords(): ReadonlyArray<WordRow>{
+        return this._words.filter(wr => wr.isSelected);
     }
 
     /**

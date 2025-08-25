@@ -1,7 +1,9 @@
 
-import { appUrls, getCSRFToken } from "./utils.js";
+import { appUrls, getCSRFToken, runPostMethod } from "./utils.js";
 import {WordRow, WordTable} from "./word.js";
 import {WordlistSelector} from "./wordlist.js"
+import {SelectedModalTable} from "./modal.js";
+import {Modal} from "bootstrap";
 
 
 const wordlistSelector = new WordlistSelector();
@@ -132,4 +134,29 @@ export function registerWord(){
             alert("想定外のエラーが生じました. 管理者に報告してください.");
         }
     })
+}
+
+
+// 削除機能関連
+const selectedModalTable = new SelectedModalTable(wordTable);
+
+/**
+ * 単語削除用のモーダルを表示する関数 
+ */
+export const showDeleteWordsModal = () => {
+    selectedModalTable.drawTable();
+    const elem = document.getElementById("delete-words-modal");
+    if (!elem) throw new Error("モーダル要素が見つかりません.");
+    (new Modal(elem).show());
+}
+
+/**
+ * 選択された単語の削除を実行する関数.  
+ * データベースから削除し, 単語テーブルから表示を削除する.  
+ */
+export const deleteWords = async () => {
+    const ids: number[] = wordTable.selectedWords.map(wr => wr.id);
+    const data = await runPostMethod(appUrls["vocab:delete"]!, JSON.stringify({"ids": ids}));
+    wordTable.removeAllSelectedWord();
+    alert("選択された単語を削除しました.");
 }
