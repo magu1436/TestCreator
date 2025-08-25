@@ -80,16 +80,6 @@
   }
 }
 </script>
-<script>
-    const data = JSON.parse('{{ json_data | safe}}');
-    const appUrls = {
-        "vocab:editor": "{% url 'vocab:editor' %}",
-        "vocab:register": "{% url 'vocab:register' %}",
-        "vocab:delete": "{% url 'vocab:delete' %}",
-        "wordbank:create": "{% url 'wordbank:create' %}",
-        "wordbank:delete": "{% url 'wordbank:delete' %}",
-    };
-</script>
 <script id="app-urls" type="application/json">
 {
     "vocab:editor": "{% url 'vocab:editor' %}",
