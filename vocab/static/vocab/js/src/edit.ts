@@ -64,6 +64,11 @@ const onRangedByNumber = () => {
 startRangeElement.addEventListener("change", onRangedByNumber);
 endRangeElement.addEventListener("change", onRangedByNumber);
 
+// 全選択チェックボックス機能
+export const onAllWordCheckbox = () => {
+    const checkbox = document.getElementById("all-word-checkbox") as HTMLInputElement;
+    wordTable.words.forEach(w => {w.isSelected = checkbox.checked});
+}
 
 // 単語帳追加機能
 export const createNewWordlist = async () => {

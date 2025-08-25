@@ -63,6 +63,7 @@ export class SelectableItem {
     toggleSelected(isSelected: boolean): this{
         this._isSelected = isSelected
         this.element.classList.toggle(SelectableItem.selectedElemClassName, isSelected);
+        (this.checkbox.firstChild as HTMLInputElement).checked = isSelected;
         return this;
     }
 

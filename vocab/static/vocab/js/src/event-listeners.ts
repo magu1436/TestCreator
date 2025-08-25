@@ -1,4 +1,10 @@
-import {registerWord, setRegisterSuccessMessageVisible, showDeleteWordsModal, deleteWords, createNewWordlist, deleteWordlist} from "./edit.js";
+import {registerWord, setRegisterSuccessMessageVisible, showDeleteWordsModal, deleteWords, createNewWordlist, deleteWordlist, onAllWordCheckbox} from "./edit.js";
+
+// 全選択チェックボックス
+document.getElementById("all-word-checkbox")!.addEventListener(
+    "click",
+    onAllWordCheckbox
+)
 
 
 // モーダル
