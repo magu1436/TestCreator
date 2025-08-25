@@ -173,7 +173,7 @@ export class WordTable {
                     word.number,
                     word.term,
                     word.meaning,
-                    word.latest_edited_by
+                    word.editor
                 );
                 this.registerWordRow(wordRow);
             }

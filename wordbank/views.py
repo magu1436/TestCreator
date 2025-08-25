@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
+from django.db.models import F
 from django.db.models.deletion import ProtectedError
 
 from .models import WordList
@@ -56,7 +57,8 @@ class ReadView(TemplateView):
             wordlist = get_object_or_404(WordList, pk=id)
             words = list(
                 Word.objects.filter(wordlist=wordlist)
-                            .values("id", "number", "term", "meaning", "latest_edited_by")
+                            .select_related("latest_edited_by")
+                            .values("id", "number", "term", "meaning", editor=F("latest_edited_by__username"))
                             .order_by("number")
                         )
             return JsonResponse({
