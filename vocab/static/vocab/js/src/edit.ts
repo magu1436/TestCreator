@@ -79,6 +79,24 @@ export const createNewWordlist = async () => {
     location.href = "?target_word_list=" + data.name;
 }
 
+// 単語帳削除機能
+export const deleteWordlist = async () => {
+    const userInputWordlistName = (document.getElementById("delete-target-wordlist-input") as HTMLInputElement).value.trim();
+    const currentWordlist = wordlistSelector.currentWordlist;
+    if (userInputWordlistName != currentWordlist.name){
+        alert("入力された単語帳名が正しくありません.");
+        return;
+    }
+
+    const data = await runPostMethod(
+        appUrls["wordbank:delete"]!,
+        JSON.stringify({"id": currentWordlist.id}),
+        "delete wordlist failed"
+    );
+    alert(`「${currentWordlist.name}」を削除しました.`);
+    location.href = appUrls["vocab:editor"]!;
+}
+
 
 // 単語追加機能
 

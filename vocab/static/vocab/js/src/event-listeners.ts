@@ -1,10 +1,15 @@
-import {registerWord, setRegisterSuccessMessageVisible, showDeleteWordsModal, deleteWords, createNewWordlist} from "./edit.js";
+import {registerWord, setRegisterSuccessMessageVisible, showDeleteWordsModal, deleteWords, createNewWordlist, deleteWordlist} from "./edit.js";
 
 
 // モーダル
 document.getElementById("create-wordlist-submit")!.addEventListener(
     "click",
     createNewWordlist,
+)
+
+document.getElementById("delete-wordlist-submit")!.addEventListener(
+    "click",
+    deleteWordlist
 )
 
 document.getElementById("registerModalClose")!.addEventListener(
