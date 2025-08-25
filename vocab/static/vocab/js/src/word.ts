@@ -45,7 +45,7 @@ export class WordRow extends SelectableItem {
         });
 
         const wordMeaning = Object.assign(document.createElement("div"), {
-            classname: WordRow.meaningClassName,
+            className: WordRow.meaningClassName,
             textContent: meaning,
         });
 

@@ -5,9 +5,10 @@ export class SelectableItem {
     static readonly selectedElemClassName = "selected";
     static readonly selectedElementOtherClasses = ["d-flex", "flex-row", "flex-shrink-0", "border"];
     static readonly checkboxClassName = "select-checkbox";
+    static readonly checkboxDivName = "checkbox-div";
     static readonly checkboxOtherClasses = ["p-2", "border-end"];
     readonly element: HTMLDivElement;
-    readonly checkbox: HTMLInputElement;
+    readonly checkbox: HTMLDivElement;
     private _content: HTMLElement | Node | null;
     private _isSelected: boolean;
 
@@ -32,14 +33,18 @@ export class SelectableItem {
         return divElem;
     }
     
-    protected createCheckbox(): HTMLInputElement{
+    protected createCheckbox(): HTMLDivElement{
+        const checkboxDiv = Object.assign(document.createElement("div"), {
+            className: SelectableItem.checkboxDivName
+        });
         const checkbox = Object.assign(document.createElement("input"), {
             type: "checkbox",
             className: SelectableItem.checkboxClassName,
-        })
+        });
         checkbox.classList.add(...SelectableItem.checkboxOtherClasses);
         checkbox.addEventListener("change", this.onCheck);
-        return checkbox;
+        checkboxDiv.appendChild(checkbox);
+        return checkboxDiv;
     }
 
     protected onCheck = (e: Event) => {
