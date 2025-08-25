@@ -20,7 +20,9 @@ export function getCSRFToken(): string{
 export const connectServer = async (
   url: string,
   method: "POST" | "GET",
-  body: FormData | string | null = null) => {
+  body: FormData | string | null = null,
+  errMesssage?: string) => {
+    if (!url) throw new Error(`url is incorrect: ${url}`);
     const response = await fetch(url, {
       method: method,
       headers: {"X-CSRFToken": getCSRFToken()},
@@ -38,17 +40,17 @@ export const connectServer = async (
 
     if (!response.ok){
       const err = data.err || data.errs;
-      alert(err || "何らかのエラーが生じました.");
-      throw new Error("post error");
+      alert(err || errMesssage || "何らかサーバーエラーが生じました.");
+      throw new Error(errMesssage || "sever proccess error");
     }
 
     return data;
   }
 
-export const runPostMethod = async (url: string, body: FormData | string): Promise<Record<string, any>> => {
-  return connectServer(url, "POST", body) as Record<string, any>;
+export const runPostMethod = async (url: string, body: FormData | string, errMessage?: string): Promise<Record<string, any>> => {
+  return connectServer(url, "POST", body, errMessage) as Record<string, any>;
 }
 
-export const runGetMethod = async (url: string): Promise<Record<string, any>> => {
-  return connectServer(url, "GET");
+export const runGetMethod = async (url: string, errMessage?: string): Promise<Record<string, any>> => {
+  return connectServer(url, "GET", errMessage);
 }

@@ -234,6 +234,9 @@ export class WordTable {
         return targetWordRow;
     }
 
+    /**
+     * 選択された全ての単語を削除するメソッド.
+     */
     removeAllSelectedWord(){
         this.selectedWords.forEach(wr => this.removeWordRow(wr));
     }

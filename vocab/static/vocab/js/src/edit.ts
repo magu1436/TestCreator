@@ -88,7 +88,7 @@ export function setRegisterSuccessMessageVisible(visible: boolean){
     registerSuccessMessageElem!.classList.toggle("d-none", !visible);
 }
 
-export function registerWord(){
+export async function registerWord(){
 
     const formData = new FormData();
     formData.append("number", addedNumberElem.value.trim())
@@ -96,44 +96,20 @@ export function registerWord(){
     formData.append("meaning", addedMeaningElem.value.trim())
     formData.append("wordlist", String(wordlistSelector.currentWordlist.id));
 
-    fetch(appUrls["vocab:register"]!, {
-        method: "POST",
-        headers: {"X-CSRFToken": getCSRFToken()},
-        body: formData,
-    })
-    .then(async (res) => {
-        const data = await res.json().catch(() => ({}));
+    const data = await runPostMethod(appUrls["vocab:register"]!, formData, "register failed");
+    const newWordRow = new WordRow(
+        data.id,
+        data.number,
+        data.term,
+        data.meaning,
+        data.editor,
+    );
+    wordTable.registerWordRow(newWordRow);
+    setRegisterWordSuccessMessage(newWordRow.number, newWordRow.term);
 
-        if (!res.ok || data.ok === false){
-            const errs = data.error || data.errors;
-            console.log(errs);
-            setRegisterSuccessMessageVisible(false);
-            alert(errs || "入力エラーが生じました.");
-            throw new Error("validation_failed");
-        }
-        return data;
-    })
-    .then((res) => {
-        const newWordRow = new WordRow(
-            res.id,
-            res.number,
-            res.term,
-            res.meaning,
-            res.editor
-        );
-        wordTable.registerWordRow(newWordRow);
-        setRegisterWordSuccessMessage(newWordRow.number, newWordRow.term);
-
-        addedNumberElem.value = String(Number(addedNumberElem.value) + 1);
-        addedTermElem.value = "";
-        addedMeaningElem.value = "";
-    })
-    .catch((err) => {
-        if (err.message !== "validation_failed"){
-            console.error(err);
-            alert("想定外のエラーが生じました. 管理者に報告してください.");
-        }
-    })
+    addedNumberElem.value = String(Number(addedNumberElem.value) + 1);
+    addedTermElem.value = "";
+    addedMeaningElem.value = "";
 }
 
 
