@@ -30,19 +30,7 @@
         </div>
     </div>
 
-    <div id="word-table" class="d-flex flex-column flex-grow-1 overflow-auto mb-2">
-        <header class="d-flex flex-row flex-shrink-0">
-            <div class="p-2 border word-checkbox-div">
-                <input type="checkbox" id="all-word-checkbox">
-            </div>
-            <div class="p-2 border word-number">単語番号</div>
-            <div class="p-2 border word-term">単語</div>
-            <div class="p-2 border word-meaning">意味</div>
-            <div class="p-2 border word-edited-by">最終更新者</div>
-        </header>
-
-        <div id="word-table-content" class="flex-grow-1 overflow-auto"></div>
-    </div>
+    {% include 'vocab/word-table.html' %}
 
     <div id="buttons" class="d-flex flex-row gap-2 flex-shrink-0 mb-2">
         <button type="button" class="btn btn-secondary text-center word-btn" data-bs-toggle="modal" data-bs-target="#create-wordlist-modal">

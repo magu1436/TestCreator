@@ -131,6 +131,8 @@ export class WordRow extends SelectableItem {
 
 
 export class WordTable {
+    protected static _instance: WordTable;
+
     static readonly tableDivId = "word-table-content";
     readonly tableDivElement: HTMLDivElement;
 
@@ -147,11 +149,14 @@ export class WordTable {
      * 初期化処理として単語帳に掲載されている単語で単語テーブルを作成するかどうか.
      */
     constructor(runCreateTable: boolean = true){
+        if (WordTable._instance) throw new Error("This class is a singleton");
+        WordTable._instance = this;
+
         const elem = document.getElementById(WordTable.tableDivId) as HTMLDivElement | null;
         if(elem == null) throw new Error(`${WordTable.tableDivId} element does not exist.`);
         this.tableDivElement = elem;
-        const wordlistId = document.getElementById("wordlist-selector")?.dataset.id;
-        if (!wordlistId) throw new Error("wordlist-selector element does not exist.");
+        const wordlistId = document.getElementById("word-table")?.dataset.wordlistId;
+        if (!wordlistId) throw new Error("wordtable element does not exist.");
         this.wordlistId = Number(wordlistId);
         if (runCreateTable) this.createWordTable();
         this.tableDivElement.addEventListener("dblclick", (e) => {
@@ -432,5 +437,10 @@ export class WordTable {
      */
     get selectedWords(): ReadonlyArray<WordRow>{
         return this._words.filter(wr => wr.isSelected);
+    }
+
+    static get instance(){
+        if (!WordTable._instance) WordTable._instance = new WordTable();
+        return WordTable._instance;
     }
 }
