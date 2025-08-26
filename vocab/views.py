@@ -70,3 +70,15 @@ class DeleteView(TemplateView):
         return JsonResponse({"ok": True}, status=200)
 
 
+class UpdateView(TemplateView):
+
+    def post(self, request):
+        word_info = json.loads(request.body)
+        word = get_object_or_404(Word, pk=word_info["id"])
+        word.number = word_info["number"]
+        word.term = word_info["term"]
+        word.meaning = word_info["meaning"]
+        word.latest_edited_by = self.request.user
+        word.save()
+
+        return JsonResponse({"ok": True, "editor": self.request.user.username}, status=200)

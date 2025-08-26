@@ -134,17 +134,29 @@ export class WordTable {
     static readonly tableDivId = "word-table-content";
     readonly tableDivElement: HTMLDivElement;
 
+    protected static currentEditorInput: HTMLInputElement | null = null;
+    protected static originalEditorDiv: HTMLDivElement | null = null;
+    protected static currentEditorWordRow: WordRow | null = null;
+
     protected _words: WordRow[] = [];
     readonly wordlistId: number;
 
-    constructor(){
+    /**
+     * コンストラクタ
+     * @param runCreateTable 
+     * 初期化処理として単語帳に掲載されている単語で単語テーブルを作成するかどうか.
+     */
+    constructor(runCreateTable: boolean = true){
         const elem = document.getElementById(WordTable.tableDivId) as HTMLDivElement | null;
         if(elem == null) throw new Error(`${WordTable.tableDivId} element does not exist.`);
         this.tableDivElement = elem;
         const wordlistId = document.getElementById("wordlist-selector")?.dataset.id;
         if (!wordlistId) throw new Error("wordlist-selector element does not exist.");
         this.wordlistId = Number(wordlistId);
-        this.createWordTable();
+        if (runCreateTable) this.createWordTable();
+        this.tableDivElement.addEventListener("dblclick", (e) => {
+            this.onEditableElemDBClick(e);
+        });
     }
 
     /**
@@ -245,14 +257,6 @@ export class WordTable {
         this.selectedWords.forEach(wr => this.removeWordRow(wr));
     }
 
-    get words(): ReadonlyArray<WordRow>{
-        return this._words;
-    }
-
-    get selectedWords(): ReadonlyArray<WordRow>{
-        return this._words.filter(wr => wr.isSelected);
-    }
-
     /**
      * 指定の単語番号の範囲の単語行のみを可視化する関数.  
      * @param start 範囲の最初の数字
@@ -286,5 +290,147 @@ export class WordTable {
             }
         })
         return this._words.filter(wr => {wr.isVisible});
+    }
+
+    /**
+     * 編集状態を更新するメソッド.
+     * @param input 編集input要素
+     * @param origin 編集前のdiv要素
+     * @param wordRow 情報を編集する単語行
+     */
+    protected setCurrentEditorState(input: HTMLInputElement | null, origin: HTMLDivElement | null, wordRow: WordRow | null){
+        WordTable.currentEditorInput = input;
+        WordTable.originalEditorDiv = origin;
+        WordTable.currentEditorWordRow = wordRow;
+    }
+
+    /**
+     * 編集状態を初期化する(全てnull)にするメソッド.
+     */
+    protected resetCurrentEditorState(){
+       this.setCurrentEditorState(null, null, null);
+    }
+
+    /**
+     * 編集するためのinput要素を作成して返すメソッド.  
+     * 引数で受け取ったdiv要素のclass属性を全て継承したinput要素を作成する.  
+     * @param div 編集するdiv要素
+     * @returns 編集するためのinput要素
+     */
+    protected createEditInputElem(div: HTMLDivElement){
+        const input = Object.assign(document.createElement("input"), {
+            type: (div.classList.contains(WordRow.numberClassName)) ? "number": "text",
+            value: div.textContent,
+        })
+        input.classList.add(...div.classList);
+        input.addEventListener("keydown", (e) => {
+            switch (e.key){
+                case "Enter":
+                    this.commitEdit();
+                    break;
+                case "Escape":
+                    this.cancelEdit();
+                    break;
+            }
+        });
+        input.addEventListener("blur", () => {this.commitEdit()});
+        return input
+    }
+
+    /**
+     * 編集内容を参照し, サーバーのデータベースを更新してWordRowの値も更新するメソッド.  
+     * 入力内容が空欄の場合はもとに戻す. ( `cancelEdit()` を実行する)
+     */
+    protected async commitEdit(){
+        if (!WordTable.currentEditorInput) return;
+        const inputValue = WordTable.currentEditorInput.value.trim();
+        if (inputValue == "") return this.cancelEdit();
+
+        const row = WordTable.currentEditorWordRow as WordRow;
+        const input = WordTable.currentEditorInput as HTMLInputElement;
+        if (input.classList.contains(WordRow.numberClassName)){
+            row.number = Number(inputValue);
+        } else if (input.classList.contains(WordRow.termClassName)){
+            row.term = inputValue;
+        } else if (input.classList.contains(WordRow.meaningClassName)){
+            row.meaning = inputValue;
+        } else {
+            throw new Error("該当のエレメントがありません.");
+        }
+        
+        const body = JSON.stringify({
+            "id": row.id,
+            "number": row.number,
+            "term": row.term,
+            "meaning": row.meaning,
+        });
+        const data = await runPostMethod(appUrls["vocab:update"]!, body, "update failed");
+
+        row.editor = data.editor;
+        this.cancelEdit();
+    }
+
+    /**
+     * 編集内容を無効にして, 編集状態を初期化するメソッド.
+     * @returns void
+     */
+    protected cancelEdit(){
+        if (!WordTable.currentEditorInput) return;
+        WordTable.currentEditorInput.replaceWith(WordTable.originalEditorDiv!);
+        this.resetCurrentEditorState();
+    }
+
+    /**
+     * ダブルクリック時のイベントリスナー関数.  
+     * ダブルクリックされたのが編集可能div要素なら, それのdivを編集用のinput要素に置き換える.  
+     * 置き換えたinput要素には, 入力によって単語情報を更新するなどのイベントリスナーが付与されている.  
+     * @param event イベント
+     * @returns void
+     */
+    onEditableElemDBClick(event: MouseEvent){
+        // 既に編集状態ならスキップ
+        if (WordTable.currentEditorInput) return;
+
+        const target = event.target;
+
+        // HTMLDivElementでない可能性を排除
+        if (!(target instanceof HTMLDivElement)) return;
+
+        // 編集可能Div要素でない可能性を排除
+        if (!(target.classList.contains(WordRow.editableDivClassName))) return;
+
+        const wordRowDiv = target.closest("." + WordRow.selectableElementClassName) as HTMLDivElement | null;
+        if (!wordRowDiv) throw new Error("WordRow div was not found: on dbclick event.");
+        const wordRow = this.getWordRowById(Number(wordRowDiv.dataset.id));
+
+        if (!wordRow) throw new Error(`wordRow wasn't fount. id: ${wordRowDiv.dataset.id}, wordRow:${wordRow}`);
+
+        const input = this.createEditInputElem(target);
+        this.setCurrentEditorState(input, target, wordRow);
+        target.replaceWith(input);
+        input.focus();
+        input.select();
+    }
+
+    /**
+     * 単語テーブルにある引数で受け取ったIDを持つ単語行を返すメソッド.  
+     * 指定のIDの単語がない場合, `undefined` を返す.
+     * @param id 単語のID
+     * @returns 単語行
+     */
+    getWordRowById(id: number){
+        return this._words.find(w => w.id === id);
+    }
+
+    get words(): ReadonlyArray<WordRow>{
+        return this._words;
+    }
+
+    /**
+     * 選択状態の `WordRow` オブジェクトの配列を返す.  
+     * 返された配列は読み取り専用.
+     */
+    get selectedWords(): ReadonlyArray<WordRow>{
+        return this._words.filter(wr => wr.isSelected);
     }
 }
