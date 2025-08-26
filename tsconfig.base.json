@@ -36,7 +36,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["static/shared/dist/*"]
+      "@shared/*": ["static/shared/dist/*"],
+      "@vocab/*": ["vocab/static/vocab/js/dist/*"],
     },
   }
 }

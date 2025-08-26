@@ -1,14 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView
 from django.http import JsonResponse
 
 from .modules.gpt import GPT4oMini
+from wordbank.models import WordList
 
 
 class InterfaceView(TemplateView):
 
     def get(self, request):
-        return render(request, "ocr/interface.html")
+        target_wordlist_id = self.request.GET.get("wordlist")
+        target_wordlist = get_object_or_404(WordList, pk=target_wordlist_id)
+        return render(request, "ocr/interface.html", {"target_word_list": target_wordlist})
 
 
 class OcrView(TemplateView):

@@ -39,9 +39,9 @@
         <button type="button" class="btn btn-secondary text-center word-btn me-auto" data-bs-toggle="modal" data-bs-target="#delete-wordlist-modal">
             単語帳を削除
         </button>
-        <a href="{% url 'ocr:interface' %}" class="btn btn-secondary text-center word-btn">
+        <button class="btn btn-secondary text-center word-btn" onclick="location.href = this.dataset.url + '?wordlist=' + '{{ target_word_list.id }}'" data-url="{% url 'ocr:interface' %}">
             写真から追加
-        </a>
+        </button>
         <button type="button" class="btn btn-secondary text-center word-btn" data-bs-toggle="modal" data-bs-target="#add-word-modal">
             単語手動追加
         </button>

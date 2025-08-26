@@ -63,16 +63,34 @@ OCR画面
 
   <!-- 右：単語テーブル（既存をここに） -->
   <div class="col-12 col-lg-7">
+    {% include 'vocab/word-table.html' %}
   </div>
 </div>
 
 {% endblock %}
 
 {% block loadjs %}
-<script>
-    const appUrls = {
-        "ocr:ocr": "{% url 'ocr:ocr' %}",
-    }
+<script type="importmap">
+{
+  "imports": {
+    "@shared/": "{% static 'shared/dist/' %}",
+    "@vocab/": "{% static 'vocab/js/dist/' %}",
+    "js-cookie": "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.mjs"
+  }
+}
+</script>
+<script id="app-urls" type="application/json">
+{
+    "vocab:editor": "{% url 'vocab:editor' %}",
+    "vocab:register": "{% url 'vocab:register' %}",
+    "vocab:delete": "{% url 'vocab:delete' %}",
+    "vocab:update": "{% url 'vocab:update' %}",
+    "wordbank:create": "{% url 'wordbank:create' %}",
+    "wordbank:delete": "{% url 'wordbank:delete' %}",
+    "wordbank:read": "{% url 'wordbank:read' %}",
+    "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}",
+    "ocr:ocr": "{% url 'ocr:ocr' %}"
+}
 </script>
 <script src="{% static 'ocr/js/utilities.js' %}"></script>
 <script type="module" src="{% static 'ocr/js/dist/interface.js' %}"></script>
