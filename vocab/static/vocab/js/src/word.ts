@@ -8,6 +8,7 @@ export class WordRow extends SelectableItem {
     static readonly numberClassName = "word-number";
     static readonly meaningClassName = "word-meaning";
     static readonly editorClassName = "word-edited-by";
+    static readonly editableDivClassName = "editable";
     static readonly contentClassNames = ["d-flex", "flex-row", "flex-shrink-0"];
     static readonly childrenClassNames = ["p-2", "border", "overflow-auto"];
 
@@ -27,6 +28,8 @@ export class WordRow extends SelectableItem {
         this.termElement = contents["term"];
         this.meaningElement = contents["meaning"];
         this.editorElement = contents["editor"];
+
+        this.element.dataset.id = String(this.id);
     }
 
     /**
@@ -63,9 +66,10 @@ export class WordRow extends SelectableItem {
 
         const values = [wordNumber, wordTerm, wordMeaning, wordEditor];
         values.forEach(v => {
-            v.classList.add(...WordRow.childrenClassNames);
+            v.classList.add(...WordRow.childrenClassNames, WordRow.editableDivClassName);
             content.appendChild(v);
         });
+        wordEditor.classList.remove(WordRow.editableDivClassName);
 
         return {
             "content": content,

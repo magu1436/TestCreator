@@ -176,3 +176,13 @@ export const deleteWords = async () => {
     wordTable.removeAllSelectedWord();
     alert("選択された単語を削除しました.");
 }
+
+
+document.addEventListener("dblclick", (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLDivElement)) return;
+    if (!(t.classList.contains(WordRow.editableDivClassName))) return;
+    const wordRowDiv = t.closest("." + WordRow.selectableElementClassName) as HTMLDivElement;
+    const wordRow = wordTable.words.find(w => w.id == Number(wordRowDiv.dataset.id));
+    console.log(wordRow!.number, wordRow!.term, wordRow!.meaning);
+})
