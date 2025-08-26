@@ -1,4 +1,5 @@
-import { getCSRFToken, appUrls } from "./utils.js"
+import { appUrls } from "./utils.js"
+import { runGetMethod } from "@shared/server-connect-helper.js"
 
 
 export class Wordlist {

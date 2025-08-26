@@ -1,5 +1,6 @@
 
-import { appUrls, getCSRFToken, runPostMethod } from "./utils.js";
+import { appUrls } from "./utils.js";
+import { runPostMethod } from "@shared/server-connect-helper.js";
 import {WordRow, WordTable} from "./word.js";
 import {WordlistSelector} from "./wordlist.js"
 import {SelectedModalTable} from "./modal.js";

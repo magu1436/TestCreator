@@ -1,5 +1,6 @@
 import {SelectableItem} from "@shared/selectable-item.js";
-import {appUrls, getCSRFToken, runPostMethod} from "./utils.js";
+import { getCSRFToken, runPostMethod } from "@shared/server-connect-helper.js";
+import {appUrls} from "./utils.js";
 
 interface WordRowContents {
     content: HTMLDivElement,
