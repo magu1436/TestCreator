@@ -1,9 +1,10 @@
 {
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
+        "baseUrl": "..",
         "rootDir": "./static/ocr/js/src",
         "outDir": "./static/ocr/js/dist",
         "composite": true,
     },
-    "include": ["static/ocr/js/src/**/*.ts"]
+    "include": ["static/ocr/js/src/**/*.ts"],
 }

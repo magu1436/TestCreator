@@ -1,9 +1,9 @@
 {
     "files": [],
     "references": [
-        {"path": "./ocr"},
+        {"path": "./static/shared/"},
         {"path": "./vocab"},
+        {"path": "./ocr"},
         {"path": "./quiz/"},
-        {"path": "./static/shared/"}
-    ]
+    ],
 }

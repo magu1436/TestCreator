@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && npm run alias:all",
+    "build": "tsc -b && npm run alias:all",
     "watch": "tsc-watch -b --onSuccess \"npm run alias:all\"",
     "alias:all": "npm run alias:ocr && npm run alias:vocab && npm run alias:quiz && npm run alias:shared",
     "alias:ocr": "tsc-alias -p ./ocr/tsconfig.json",
