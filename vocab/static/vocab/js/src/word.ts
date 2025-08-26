@@ -11,7 +11,6 @@ interface WordRowContents {
 
 export class WordRow extends SelectableItem {
 
-    static readonly uniqueClassName = "word-row";
     static readonly termClassName = "word-term";
     static readonly numberClassName = "word-number";
     static readonly meaningClassName = "word-meaning";
