@@ -2,6 +2,7 @@
 from abc import ABC
 import base64
 import json
+from typing import TypedDict
 
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
@@ -9,6 +10,16 @@ from openai import OpenAI
 from openai.types import CompletionUsage
 
 RATE = 146.85
+
+class Word(TypedDict):
+    number: int
+    term: str
+    meaning: str
+
+class RequestResult(TypedDict):
+    words: list[Word]
+    cost: float
+    errors: list[Exception]
 
 class GPTModel(ABC):
 
@@ -24,51 +35,37 @@ class GPTModel(ABC):
         self.input_price = input_price
         self.output_price = output_price
     
-    def request(self, files: list[UploadedFile]) -> list[dict[str, dict | float | list]]:
-        """受け取った画像をChatGPTに渡し, OCRで単語情報を取得するメソッド.  
-        
-        Args:
-            file(list[UploadedFile]): 画像ファイルのリスト
-        
-        Returns:
-            list[dict[str, dict|float|list]]: リクエストから得たデータ
-        """
-        
-        request_results = []
-
+    def request(self, file: UploadedFile) -> RequestResult:
         client = OpenAI(api_key=settings.API_KEY)
-        for f in files:
-            result = {"word": None, "cost": None, "errors": []}
-            request_results.append(result)
-            try:
-                res = client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": self.__get_system_prompt(),
-                        },
-                        {
-                            "role": "user",
-                            "content":[
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/jpeg;base64,{self.__to_base64(f)}",
-                                    },
+        result: RequestResult = {"words": None, "cost": None, "errors": None}
+        try:
+            res = client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": self.__get_system_prompt(),
+                    },
+                    {
+                        "role": "user",
+                        "content":[
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{self.__to_base64(file)}",
                                 },
-                            ],
-                        },
-                    ],
-                    response_format={"type": "json_object"},
-                    temperature=0.,
-                )
-                result["word"] = self.__to_word_dict_list(res.choices[0].message.content)
-                result["cost"] = self.__calc_balance(res.usage)
-            except Exception as e:
-                result["errors"].append(e)
-        
-        return request_results
+                            },
+                        ],
+                    },
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.,
+            )
+            result["words"] = self.__to_word_dict_list(res.choices[0].message.content)
+            result["cost"] = self.__calc_balance(res.usage)
+        except Exception as e:
+            result["errors"].append(e)
+        return result
 
 
     def __calc_balance(self, usage: CompletionUsage) -> float:

@@ -20,7 +20,13 @@ class OcrView(TemplateView):
 
         files = request.FILES.getlist("files")
         gpt = GPT4oMini()
-        res = gpt.request(files)
-        print(res)
+        res = gpt.request(files[0])
+        print(res["words"])
+        print(res["cost"])
 
-        return JsonResponse({"message": f"{len(files)}件アップロードしました"})
+        return JsonResponse({
+            "message": f"{len(files)}件アップロードしました",
+            "words": res["words"],
+            "cost": res["cost"],
+            "errors": res["errors"],
+            })

@@ -164,11 +164,11 @@ export class WordTable {
         if(elem == null) throw new Error(`${WordTable.tableDivId} element does not exist.`);
         this.tableDivElement = elem;
         const wordlistId = document.getElementById("word-table")?.dataset.wordlistId;
-        if (!wordlistId) throw new Error("wordtable element does not exist.");
+        if (!wordlistId) throw new Error("word-table element does not exist.");
         this.wordlistId = Number(wordlistId);
         if (runCreateTable) this.createWordTable();
         this.tableDivElement.addEventListener("dblclick", (e) => {
-            this.onEditableElemDBClick(e);
+            this.onEditableElemDBLClick(e);
         });
     }
 
@@ -231,7 +231,7 @@ export class WordTable {
 
         for (let i = 0; i < this._words.length; i++){
             const compared = this._words[i]!    // 中身がないときはfor文が回らないため, undefinedになることはない
-            if (wordRow.id < compared.id){
+            if (wordRow.number < compared.number){
                 this._words.splice(i, 0, wordRow);
                 compared.element.before(wordRow.element);
                 break;
@@ -351,10 +351,12 @@ export class WordTable {
     }
 
     /**
-     * 編集内容を参照し, サーバーのデータベースを更新してWordRowの値も更新するメソッド.  
+     * 編集内容を参照し, WordRowの値を更新するメソッド. 
+     * `updateDatabase = true` のとき, データベースの値も更新する.   
      * 入力内容が空欄の場合はもとに戻す. ( `cancelEdit()` を実行する)
+     * @param updateDatabase サーバーに接続詞てデータベースの値も更新するかどうか
      */
-    protected async commitEdit(){
+    protected async commitEdit(updateDatabase: boolean = true){
         if (!WordTable.currentEditorInput) return;
         const inputValue = WordTable.currentEditorInput.value.trim();
         if (inputValue == "") return this.cancelEdit();
@@ -370,16 +372,22 @@ export class WordTable {
         } else {
             throw new Error("該当のエレメントがありません.");
         }
-        
-        const body = JSON.stringify({
-            "id": row.id,
-            "number": row.number,
-            "term": row.term,
-            "meaning": row.meaning,
-        });
-        const data = await runPostMethod(appUrls["vocab:update"]!, body, "update failed");
 
-        row.editor = data.editor;
+        this.removeWordRow(row)
+        this.registerWordRow(row)
+
+        if (updateDatabase){
+            const body = JSON.stringify({
+                "id": row.id,
+                "number": row.number,
+                "term": row.term,
+                "meaning": row.meaning,
+            });
+            const data = await runPostMethod(appUrls["vocab:update"]!, body, "update failed");
+
+            row.editor = data.editor;
+        }
+
         this.cancelEdit();
     }
 
@@ -400,7 +408,7 @@ export class WordTable {
      * @param event イベント
      * @returns void
      */
-    onEditableElemDBClick(event: MouseEvent){
+    onEditableElemDBLClick(event: MouseEvent){
         // 既に編集状態ならスキップ
         if (WordTable.currentEditorInput) return;
 
@@ -413,7 +421,7 @@ export class WordTable {
         if (!(target.classList.contains(WordRow.editableDivClassName))) return;
 
         const wordRowDiv = target.closest("." + WordRow.selectableElementClassName) as HTMLDivElement | null;
-        if (!wordRowDiv) throw new Error("WordRow div was not found: on dbclick event.");
+        if (!wordRowDiv) throw new Error("WordRow div was not found: on dblclick event.");
         const wordRow = this.getWordRowById(Number(wordRowDiv.dataset.id));
 
         if (!wordRow) throw new Error(`wordRow wasn't fount. id: ${wordRowDiv.dataset.id}, wordRow:${wordRow}`);

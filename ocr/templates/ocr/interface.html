@@ -44,7 +44,7 @@ OCR画面
         <div class="d-flex align-items-center justify-content-between mt-3">
           <div class="small text-muted">合計サイズ: <span id="total-size">0</span> MB</div>
           <div>
-            <button id="upload-btn" class="btn btn-primary" disabled>アップロード開始</button>
+            <button id="upload-btn" class="btn btn-primary">アップロード開始</button>
           </div>
         </div>
 
@@ -92,6 +92,5 @@ OCR画面
     "ocr:ocr": "{% url 'ocr:ocr' %}"
 }
 </script>
-<script src="{% static 'ocr/js/utilities.js' %}"></script>
 <script type="module" src="{% static 'ocr/js/dist/interface.js' %}"></script>
 {% endblock %}

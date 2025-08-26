@@ -3,3 +3,23 @@
     background-color:#f0f8ff !important; 
     border-color:#0d6efd !important;
 }
+
+.word-checkbox-div {
+    width: 10%;
+}
+
+.word-number {
+    width: 15%;
+}
+
+.word-term {
+    width: 35%;
+}
+
+.word-meaning {
+    width: 50%;
+}
+
+.word-edited-by {
+    display: none;
+}
