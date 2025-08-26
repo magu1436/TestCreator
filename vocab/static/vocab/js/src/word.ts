@@ -1,6 +1,14 @@
 import {SelectableItem} from "@shared/selectable-item.js";
 import {appUrls, getCSRFToken, runPostMethod} from "./utils.js";
 
+interface WordRowContents {
+    content: HTMLDivElement,
+    number: HTMLDivElement,
+    term: HTMLDivElement,
+    meaning: HTMLDivElement,
+    editor: HTMLDivElement
+}
+
 export class WordRow extends SelectableItem {
 
     static readonly uniqueClassName = "word-row";
@@ -22,12 +30,12 @@ export class WordRow extends SelectableItem {
 
     constructor(id: number, wordNum: number, term: string, meaning: string, latestEditedBy: string){
         const contents = WordRow.createContent(wordNum, term, meaning, latestEditedBy);
-        super(contents["content"]);
+        super(contents.content);
         this.id = id;
-        this.numberElement = contents["number"];
-        this.termElement = contents["term"];
-        this.meaningElement = contents["meaning"];
-        this.editorElement = contents["editor"];
+        this.numberElement = contents.number;
+        this.termElement = contents.term;
+        this.meaningElement = contents.meaning;
+        this.editorElement = contents.editor;
 
         this.element.dataset.id = String(this.id);
     }
@@ -38,9 +46,9 @@ export class WordRow extends SelectableItem {
      * @param term 単語
      * @param meaning 意味
      * @param editor 最終更新者
-     * @returns それぞれのHTML要素を保持する辞書
+     * @returns それぞれのHTML要素を保持する連想配列
      */
-    protected static createContent(num: number | String, term: String, meaning: String, editor: String){
+    protected static createContent(num: number | String, term: String, meaning: String, editor: String): WordRowContents{
         const content = document.createElement("div");
         content.classList.add(...WordRow.contentClassNames);
         
@@ -72,11 +80,11 @@ export class WordRow extends SelectableItem {
         wordEditor.classList.remove(WordRow.editableDivClassName);
 
         return {
-            "content": content,
-            "number": wordNumber,
-            "term": wordTerm,
-            "meaning": wordMeaning,
-            "editor": wordEditor,
+            content: content,
+            number: wordNumber,
+            term: wordTerm,
+            meaning: wordMeaning,
+            editor: wordEditor
         };
     }
 
