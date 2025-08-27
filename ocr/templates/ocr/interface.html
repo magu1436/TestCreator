@@ -62,8 +62,17 @@ OCR画面
   </div>
 
   <!-- 右：単語テーブル（既存をここに） -->
-  <div class="col-12 col-lg-7">
+  <div class="col-12 col-lg-7 d-flex flex-column flex-grow-1 h-100 mx-auto">
     {% include 'vocab/word-table.html' %}
+
+    <div class="d-flex flex-row flex-shrink-0 gap-2 mb-2">
+      <button id="delete-btn" type="button" class="btn btn-secondary text-center">
+        削除
+      </button>
+      <button id="register-btn" type="button" class="btn btn-secondary text-center">
+        登録
+      </button>
+    </div>
   </div>
 </div>
 

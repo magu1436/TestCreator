@@ -3,6 +3,7 @@
         "importmap",
         "loadcss",
         "loadjs",
+        "popperjs",
         "wordbank",
         "wordlist"
     ]

@@ -5,6 +5,7 @@ export class DropZone{
     static readonly bodyUploadedId = "body-uploaded";
     static readonly counterId = "file-count";
     static readonly fileInputId = "file-input";
+    static readonly maxFileAmount = 20;
     readonly element: HTMLDivElement;
     readonly initBody: HTMLDivElement;
     readonly bodyUploaded: HTMLDivElement;
@@ -70,6 +71,10 @@ export class DropZone{
      * @param file 追加する画像ファイル
      */
     protected addFileAsImageFile(file: File){
+        if (this.droppedFiles.length >= DropZone.maxFileAmount){
+            return alert("追加できる画像は最大20枚です.");
+        }
+
         const img = new ImageFile(file);
         this._droppedFiles.push(img);
         this.bodyUploaded.appendChild(img.element);
