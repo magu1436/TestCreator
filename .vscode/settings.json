@@ -5,6 +5,7 @@
         "loadjs",
         "popperjs",
         "wordbank",
-        "wordlist"
+        "wordlist",
+        "wordlists"
     ]
 }

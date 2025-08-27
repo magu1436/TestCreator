@@ -13,7 +13,7 @@ OCR画面
 
 {% block content %}
 <!-- ocr/interface.html の左カラム例（右側は既存の単語テーブルを配置） -->
-<div class="row g-4">
+<div class="row g-4 h-100 mx-auto">
   <!-- 左：アップロード -->
   <div class="col-12 col-lg-5">
     <div class="card shadow-sm">
@@ -51,7 +51,7 @@ OCR画面
         <!-- 全体進捗 -->
         <div class="mt-3 d-none" id="overall-progress-wrap">
           <div class="d-flex justify-content-between small mb-1">
-            <span>全体進捗</span><span id="overall-percent">0%</span>
+            <span>全体進捗</span><span id="overall-percent">0</span><span>%</span>
           </div>
           <div class="progress" role="progressbar" aria-label="overall" aria-valuemin="0" aria-valuemax="100">
             <div class="progress-bar" id="overall-progress" style="width: 0%"></div>
@@ -59,17 +59,24 @@ OCR画面
         </div>
       </div>
     </div>
+
+    <button type="button" class="btn btn-secondary mt-2" onclick="location.href = this.dataset.url + '?target_word_list=' + '{{ target_word_list.name }}'" data-url="{% url 'vocab:editor' %}">
+      単語編集画面に戻る
+    </button>
   </div>
 
-  <!-- 右：単語テーブル（既存をここに） -->
+  <!-- 右：単語テーブル -->
   <div class="col-12 col-lg-7 d-flex flex-column flex-grow-1 h-100 mx-auto">
+    
+    <select id="wordlist-selector" class="w-50 mb-2" data-id="{{ target_word_list.id }}"></select>
+
     {% include 'vocab/word-table.html' %}
 
     <div class="d-flex flex-row flex-shrink-0 gap-2 mb-2">
-      <button id="delete-btn" type="button" class="btn btn-secondary text-center">
+      <button id="delete-btn" type="button" class="btn btn-danger text-center">
         削除
       </button>
-      <button id="register-btn" type="button" class="btn btn-secondary text-center">
+      <button id="register-btn" type="button" class="btn btn-primary text-center">
         登録
       </button>
     </div>

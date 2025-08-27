@@ -149,7 +149,7 @@ export class WordTable {
     protected static currentEditorWordRow: WordRow | null = null;
 
     protected _words: WordRow[] = [];
-    readonly wordlistId: number;
+    wordlistId: number;
 
     /**
      * コンストラクタ
