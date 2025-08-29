@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'wordbank',
     'vocab',
     'ocr',
+    'quiz',
 ]
 
 AUTH_USER_MODEL = 'accounts.AdminUser'

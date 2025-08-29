@@ -26,6 +26,7 @@ urlpatterns = [
     path("vocab/", include("vocab.urls")),
     path("wordbank/", include("wordbank.urls")),
     path("ocr/", include("ocr.urls")),
+    path("quiz/", include("quiz.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
