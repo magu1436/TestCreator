@@ -17,7 +17,7 @@
 
     <!-- 左側の設定群 -->
     <div id="configure" class="col-12 col-lg-8 d-flex flex-column overflow-auto">
-        <select id="wordlist-selector" class="m-2"></select>
+        <select id="wordlist-selector" class="m-2" data-id="{{ wordlist.id }}"></select>
 
         <div id="number-range-configure" class="d-flex flex-column m-2">
             <h5>出題範囲</h5>
@@ -73,5 +73,20 @@
 
 
 {% block loadjs %}
+<script type="importmap">
+{
+  "imports": {
+    "@shared/": "{% static 'shared/dist/' %}",
+    "@vocab/": "{% static 'vocab/js/dist/' %}",
+    "js-cookie": "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.mjs"
+  }
+}
+</script>
+<script id="app-urls" type="application/json">
+{
+    "wordbank:read": "{% url 'wordbank:read' %}",
+    "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}"
+}
+</script>
 <script type="module" src="{% static 'quiz/js/dist/main.js' %}"></script>
 {% endblock %}

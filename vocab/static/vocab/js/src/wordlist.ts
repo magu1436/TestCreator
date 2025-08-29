@@ -8,20 +8,18 @@ export class Wordlist {
     readonly element: HTMLOptionElement;
     private _id: number;
     private _name: string;
-    private _isCurrentWordlist;
 
     constructor(id: number, name: string, isCurrentWordlist: boolean = false){
         this._id = id;
         this._name = name;
-        this._isCurrentWordlist = isCurrentWordlist;
-        this.element = this.createWordlistOptionElement(id, name);
-        if (this.isCurrentWordlist) this.element.selected = true;
+        this.element = this.createWordlistOptionElement(id, name, isCurrentWordlist);
     }
 
-    protected createWordlistOptionElement(id: number, name: string): HTMLOptionElement{
+    protected createWordlistOptionElement(id: number, name: string, selected: boolean): HTMLOptionElement{
         return Object.assign(document.createElement("option"), {
             value: name,
             textContent: name,
+            selected: selected,
         });
     }
 
@@ -38,7 +36,11 @@ export class Wordlist {
     }
 
     get isCurrentWordlist(){
-        return this._isCurrentWordlist;
+        return this.element.selected;
+    }
+
+    set isCurrentWordlist(isCurrentWordlist: boolean){
+        this.element.selected = isCurrentWordlist;
     }
 }
 
