@@ -19,13 +19,13 @@
     <div id="configure" class="col-12 col-lg-8 d-flex flex-column overflow-auto">
         <select id="wordlist-selector" class="m-2"></select>
 
-        <div id="number-range d-flex flex-column m-2">
+        <div id="number-range-configure" class="d-flex flex-column m-2">
             <h5>出題範囲</h5>
-            <div id="range-boxes" class="row">
-                <div class="range-box col">
-                    <input type="number" class="range-box-right" min="0">
-                    <span>～</span>
+            <div id="range-boxes" class="d-flex flex-column">
+                <div class="range-box col mb-1">
                     <input type="number" class="range-box-left" min="0">
+                    <span>～</span>
+                    <input type="number" class="range-box-right" min="0">
                 </div>
             </div>
             <button type="button" id="add-range-btn" class="bi bi-plus-circle"></button>
@@ -55,7 +55,7 @@
                 <label class="form-check-label" for="random">ランダム</label>
             </div>
             <div class="radio-inline">
-                <input class="form-check-input" type="radio" name="question-sequence-radio" id="sequence" checked>
+                <input class="form-check-input" type="radio" name="question-sequence-radio" id="sequence">
                 <label class="form-check-label" for="sequence">昇順</label>
             </div>
         </div>
@@ -73,4 +73,5 @@
 
 
 {% block loadjs %}
+<script type="module" src="{% static 'quiz/js/dist/main.js' %}"></script>
 {% endblock %}

@@ -1,4 +1,8 @@
 
+#configure {
+    height: 100%;
+}
+
 #wordlist-selector {
     width: 50%;
 }
