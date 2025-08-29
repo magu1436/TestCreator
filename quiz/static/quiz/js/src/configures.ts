@@ -132,3 +132,36 @@ export class NumberRangeConfigure {
         return this._boxes;
     }
 }
+
+
+/**
+ * 入力された問題数を取得して返す関数.  
+ * 入力内容が不正な値(0未満など)だった場合にはエラーを投げる.  
+ * @returns 問題数
+ */
+export const getNumQuestions = () => {
+    const inp = document.getElementById("num-questions-input") as HTMLInputElement;
+    const num = Number(inp.value);
+    if (Number.isNaN(num) || num <= 0) throw new Error("Incorrect number of questions is input");
+    return num
+}
+
+
+export class RadioConfigure {
+
+    readonly referenceRadioButtonName: string;
+    protected buttons: HTMLInputElement[] = [];
+
+    constructor(name: string){
+        this.referenceRadioButtonName = name;
+        const buttons = document.getElementsByName(name) as NodeListOf<HTMLInputElement>;
+        if (buttons.length === 0) throw new Error(`no buttons have the name: ${name}`);
+        buttons.forEach((b) => this.buttons.push(b));
+    }
+
+    getCheckedButton(){
+        const checked = this.buttons.find(b => b.checked);
+        if (!checked) throw new Error("Checked Radio Button do not exist.");
+        return checked;
+    }
+}
