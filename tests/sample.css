@@ -1,0 +1,108 @@
+/* ----------- ページ設定 ----------- */
+@page {
+  size: A4 portrait;
+  margin: 14mm 14mm 16mm 14mm; /* 上右下左 */
+}
+
+html, body {
+  font-family: "Noto Sans JP", "Yu Gothic", "Meiryo", system-ui, -apple-system, sans-serif;
+  font-size: 12pt;
+  line-height: 1;
+  -weasy-hyphens: auto; /* 英単語のハイフネーション */
+}
+
+/* ----------- タイトルバー ----------- */
+.titlebar {
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 6mm;
+}
+.app-title {
+  margin: 0 0 3mm 0;
+  font-size: 17pt;
+  text-align: center;
+  font-weight: 700;
+}
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+}
+.range {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+.num-sequence {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3mm;
+}
+
+/* ----------- 見出し（表ヘッダ風） ----------- */
+.legend {
+  border: 1px solid #dee2e6;
+  background: #f8f9fa; /* Bootstrapのthead風 */
+  color: #212529;
+  font-weight: 700;
+  padding: 2.5mm 2mm;
+  margin-bottom: 2mm;
+}
+
+/* 2:5:5 の比率で3列グリッド。legend と row で共用 */
+.grid-3 {
+  display: grid;
+  grid-template-columns: 2fr 5fr 5fr; /* 番号 / 問題 / 解答 */
+}
+
+.legend .th { padding: 0 2mm; border-right: 1px solid #dee2e6; }
+.legend .th:last-child { border-right: none; }
+.legend .num { text-align: center; }
+
+/* ----------- 2カラム本文 ----------- */
+.sheet {
+  column-count: 2;         /* 左→右→次ページの順で自動フロー */
+  column-gap: 10mm;        /* カラム間 */
+  orphans: 1; widows: 1;
+}
+
+/* 行＝1語。列途中やページ途中で折れにくくする */
+.row {
+  break-inside: avoid;      /* 列分割の途中改行を抑止 */
+  border: 1px solid #dee2e6;
+  padding: 2mm 0;
+  margin: 0;                /* カラム内で詰めて積む */
+}
+/* カード間の余白。境界を連続させたい場合は 0 に */
+.row + .row { margin-top: -1px; }
+
+/* 偶数行の薄い縞（好みで） */
+.row:nth-of-type(even) { background: #fcfcfd; }
+
+.cell { 
+    padding: 0 2mm; 
+    border-right: 1px solid #dee2e6; 
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cell:last-child { border-right: none; }
+.cell.num { text-align: center; }
+.cell.word { font-weight: 600; }
+.cell.meaning { position: relative; }
+
+/* 実データ（解答テキスト）。不可視でもレイアウトには参加させる */
+.meaning-text {
+  white-space: pre-wrap;   /* 改行と折返し */
+  word-break: break-word;  /* 長語の折返し */
+}
+
+/* ----------- モード切替（問題/解答） ----------- */
+html.mode-problem .meaning-text { visibility: hidden; }
+
+html.mode-answer .meaning-text { visibility: visible; }
+
+/* ----------- 細部調整 ----------- */
+/* 1列目（番号）の最小幅を少し確保したい場合の目安 */
+.legend.grid-3, .row.grid-3 { grid-template-columns: minmax(10mm,2fr) 5fr 5fr; }

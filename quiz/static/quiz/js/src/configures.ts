@@ -111,16 +111,16 @@ export class NumberRangeConfigure {
         this.rangeBoxesElem.appendChild(newBox.elem);
     }
 
-    getRange(){
-        const range = []
+    getRanges(){
+        const ranges = []
         for (const box of this._boxes){
             if (!box.isCorrectRange){
                 alert("不適切な単語番号指定があります.");
                 throw new Error("incorrect range error");
             }
-            range.push({"start": box.start, "end": box.end});
+            ranges.push({"start": box.start, "end": box.end});
         }
-        return range;
+        return ranges;
     }
 
     static get insatance(){

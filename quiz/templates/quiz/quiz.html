@@ -1,0 +1,44 @@
+<!doctype html>
+<html class="mode-{{ mode }}" lang="ja">
+  <!--
+    モード切替:
+      問題用: <html class="mode-problem" ...>
+      解答用: <html class="mode-answer"  ...>
+    同一DOM・同一CSSで2回レンダリング（WeasyPrint）してPDF化すると、改ページ位置が一致します。
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <title>単語テスト</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'quiz/css/quiz.css' %}" />
+  </head>
+  <body>
+    <header class="titlebar">
+      <h1 class="app-title">{{ wordlist.name }}</h1>
+      <div class="meta">
+        <div class="range">
+            {% for range in ranges %}
+            <a>{{ range.start }} ～ {{ range.end }} 番</a>
+            {% endfor %}
+        </div>
+        <div class="num-sequence">
+            <p>{{ num_question }}</p>
+            <p>{{ sequence }}</p>
+        </div>
+      </div>
+    </header>
+
+
+    <main class="sheet">
+      {% for word in words %}
+      <div class="row grid-3">
+        <div class="cell num">{{ word.number }}</div>
+        <div class="cell word">{{ word.term }}</div>
+        <div class="cell meaning">
+          <div class="meaning-text">{{ word.meaning }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </main>
+  </body>
+</html>
