@@ -10,6 +10,7 @@ from weasyprint import HTML, CSS
 
 
 CSS_NAME: Final[str] = "quiz.css"
+FILE_NAME_FORMAT: Final[str] = "%Y_%m_%d_%H_%M_%S_%f.pdf"
 
 def create_pdf(html: str):
     """HTMLをPDFに変換して保存する関数.  
@@ -28,4 +29,4 @@ def create_pdf(html: str):
 
 def __create_name():
     now = timezone.localtime(timezone.now())
-    return now.strftime("%Y%m%d_%H%M%S_%f.pdf")
+    return now.strftime(FILE_NAME_FORMAT)
