@@ -14,6 +14,7 @@ document.getElementById("create-btn")?.addEventListener("click", () => {
         ranges: ns.getRanges(),
         wordlistId: sl.currentWordlist.id,
         numQuestion: getNumQuestions(),
+        format: formatRadio.getCheckedButton().id,
         sequence: seqRadio.getCheckedButton().id,
     }))
 })

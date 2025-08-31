@@ -23,7 +23,6 @@ class CreateTestView(TemplateView):
     def post(self, request):
 
         configure = json.loads(request.body)
-        print(configure)
         wordlist_id = configure["wordlistId"]
         wordlist = get_object_or_404(WordList, pk=wordlist_id)
         ranges = configure["ranges"]
@@ -31,16 +30,28 @@ class CreateTestView(TemplateView):
         sequence = ""
         match configure["sequence"]:
             case "random": sequence = "ランダム"
-            case "sequence": sequence = "昇順"
+            case "sequence": sequence = "番号順"
             case _: raise ValueError(f"sequence value error: {sequence}")
 
+        # 複数の範囲指定に対応した番号の単語を取得
         q_obj = Q()
         for range in ranges:
             q_obj.add(Q(number__range=(range["start"], range["end"])), Q.OR)
         words = list(Word.objects.filter(Q(wordlist=wordlist), q_obj).order_by("number"))
+
+        # フォーマットが "意味 → 単語" の場合, 単語と意味を入れ替えた辞書をコンテキストにわたす
+        if configure["format"] == "qfr-mt":
+            words = [
+                {
+                    "number": word.number,
+                    "term": word.meaning,
+                    "meaning": word.term,
+                } for word in words
+            ]
+
+        # 順番の確定
         if sequence == "ランダム":
             words = random.sample(words, k=(min(num_question, len(words))))
-        print(words)
         
         param = {
             "wordlist": wordlist,
