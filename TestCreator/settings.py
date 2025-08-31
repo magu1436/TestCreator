@@ -140,4 +140,4 @@ MEDIA_URL = '/media/'
 load_dotenv()
 API_KEY = os.environ.get("API_KEY")
 
-OUTPUT_PDF_DIR = "outputs/"
+OUTPUT_PDF_DIR = MEDIA_ROOT + "/exports/"

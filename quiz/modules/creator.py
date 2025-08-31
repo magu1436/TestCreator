@@ -17,15 +17,18 @@ def create_pdf(html: str):
     
     Args:
         html (str): PDFに変換するHTMLの文字列.
+    Return:
+        str: 作成したファイルの名前.
     """
-    print(finders.find("quiz/css/" + CSS_NAME))
+    file_name = __create_name()
     HTML(
         string=html, 
         base_url=settings.BASE_DIR
     ).write_pdf(
-        Path(settings.OUTPUT_PDF_DIR, __create_name()),
+        Path(settings.OUTPUT_PDF_DIR, file_name),
         stylesheets=[CSS(filename=finders.find("quiz/css/" + CSS_NAME))],
     )
+    return file_name
 
 def __create_name():
     now = timezone.localtime(timezone.now())

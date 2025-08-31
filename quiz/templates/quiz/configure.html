@@ -67,6 +67,7 @@
         <button type="button" id="create-btn" class="btn btn-secondary m-1">作成する</button>
         <button type="button" id="download-btn" class="btn btn-secondary m-1">作成してダウンロード</button>
     </div>
+
 </div>
 
 {% endblock %}
@@ -86,7 +87,8 @@
 {
     "wordbank:read": "{% url 'wordbank:read' %}",
     "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}",
-    "quiz:create": "{% url 'quiz:create' %}"
+    "quiz:create": "{% url 'quiz:create' %}",
+    "quiz:preview": "{% url 'quiz:preview' %}"
 }
 </script>
 <script type="module" src="{% static 'quiz/js/dist/main.js' %}"></script>

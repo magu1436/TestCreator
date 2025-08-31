@@ -1,12 +1,13 @@
 
 
-class RangeBox {
+export class RangeBox {
     
     static readonly originalElemClassName = "range-box";
     static readonly originalLeftBoxClassName = "range-box-left";
     static readonly originalRightBoxClassName = "range-box-right";
 
-    protected static _originalRangeBox: HTMLDivElement | null;
+    protected static _originalRangeBoxDiv: HTMLDivElement | null;
+    protected static _originalRangeBox: RangeBox | null;
 
     readonly elem: HTMLDivElement;
     readonly startBoxElem: HTMLInputElement;
@@ -15,12 +16,13 @@ class RangeBox {
     protected _end: number = Infinity;
 
     constructor(){
-        if (!RangeBox._originalRangeBox){
-            RangeBox._originalRangeBox = document.getElementsByClassName(RangeBox.originalElemClassName)![0] as HTMLDivElement;
+        if (!RangeBox._originalRangeBoxDiv){
+            RangeBox._originalRangeBoxDiv = document.getElementsByClassName(RangeBox.originalElemClassName)![0] as HTMLDivElement;
             if (!RangeBox) throw new Error(`${RangeBox.originalElemClassName} element have not been found.`);
-            this.elem = RangeBox._originalRangeBox;
+            this.elem = RangeBox._originalRangeBoxDiv;
+            RangeBox._originalRangeBox = this;
         } else {
-            this.elem = RangeBox._originalRangeBox.cloneNode(true) as HTMLDivElement;
+            this.elem = RangeBox._originalRangeBoxDiv.cloneNode(true) as HTMLDivElement;
         }
         this.startBoxElem = this.elem.getElementsByClassName(RangeBox.originalLeftBoxClassName)![0] as HTMLInputElement;
         this.startBoxElem.addEventListener("change", () => {this.onStartBoxChange()});
@@ -66,6 +68,11 @@ class RangeBox {
     set end(e: number){
         this.endBoxElem.value = String(e);
         this._end = e;
+    }
+
+    static get originalRangeBox(){
+        if (!RangeBox._originalRangeBox) throw new Error("OriginalRangeBox does not exist");
+        return RangeBox._originalRangeBox;
     }
 
     /**
@@ -114,13 +121,18 @@ export class NumberRangeConfigure {
     getRanges(){
         const ranges = []
         for (const box of this._boxes){
-            if (!box.isCorrectRange){
+            if (!box.isCorrectRange()){
                 alert("不適切な単語番号指定があります.");
                 throw new Error("incorrect range error");
             }
             ranges.push({"start": box.start, "end": box.end});
         }
         return ranges;
+    }
+
+    initRangeConfigure(){
+        this._boxes.slice(1).forEach(rb => {this.rangeBoxesElem.removeChild(rb.elem);});
+        this._boxes = [RangeBox.originalRangeBox]
     }
 
     static get insatance(){

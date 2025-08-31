@@ -76,7 +76,6 @@ class ReadView(TemplateView):
 
 class GetAllWordlistView(TemplateView):
     def get(self, request):
-        #wordlists = [model_to_dict(wordlist, ["id", "name"]) for wordlist in WordList.objects]
         wordlists = list(WordList.objects.values("id", "name").order_by("id"))
         return JsonResponse({
             "wordlists": wordlists,

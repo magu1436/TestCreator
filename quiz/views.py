@@ -1,15 +1,17 @@
-import random
 import json
+from pathlib import Path
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.template.loader import render_to_string
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from django.views.generic import TemplateView
-from django.db.models import Q
+from django.urls import reverse
+from django.utils.encoding import iri_to_uri
+from django.conf import settings
 
 from wordbank.models import WordList
-from vocab.models import Word
 from .modules.creator import create_pdf
+from .modules.configure import create_configure
 
 
 class TestConfigureView(TemplateView):
@@ -23,45 +25,28 @@ class CreateTestView(TemplateView):
     def post(self, request):
 
         configure = json.loads(request.body)
-        wordlist_id = configure["wordlistId"]
-        wordlist = get_object_or_404(WordList, pk=wordlist_id)
-        ranges = configure["ranges"]
-        num_question = configure["numQuestion"]
-        sequence = ""
-        match configure["sequence"]:
-            case "random": sequence = "ランダム"
-            case "sequence": sequence = "番号順"
-            case _: raise ValueError(f"sequence value error: {sequence}")
+        context = create_configure(configure)
 
-        # 複数の範囲指定に対応した番号の単語を取得
-        q_obj = Q()
-        for range in ranges:
-            q_obj.add(Q(number__range=(range["start"], range["end"])), Q.OR)
-        words = list(Word.objects.filter(Q(wordlist=wordlist), q_obj).order_by("number"))
+        html = render_to_string("quiz/quiz.html", context, request)
+        file_name = create_pdf(html)
 
-        # フォーマットが "意味 → 単語" の場合, 単語と意味を入れ替えた辞書をコンテキストにわたす
-        if configure["format"] == "qfr-mt":
-            words = [
-                {
-                    "number": word.number,
-                    "term": word.meaning,
-                    "meaning": word.term,
-                } for word in words
-            ]
+        file_path = Path(settings.OUTPUT_PDF_DIR, file_name)
+        f = open(file_path, "rb")
+        response = FileResponse(f, content_type="application/pdf")
+        response["Content-Disposition"] = f"inline; filename*=UTF-8''{iri_to_uri(file_name)}"
 
-        # 順番の確定
-        if sequence == "ランダム":
-            words = random.sample(words, k=(min(num_question, len(words))))
-        
-        param = {
-            "wordlist": wordlist,
-            "ranges": ranges,
-            "num_question": num_question,
-            "sequence": sequence,
-            "words": words,
-        }
+        return response
 
-        html = render_to_string("quiz/quiz.html", param, request)
-        create_pdf(html)
 
-        return JsonResponse({"ok": True})
+class PreviewTestView(TemplateView):
+
+    def get(self, request):
+        config = request.session.get("preview_config")
+        if not config:
+            raise ValueError("config is not set.")
+        return render(request, "quiz/quiz.html", config)
+
+    def post(self, request):
+        configure = json.loads(request.body)
+        request.session["preview_config"] = create_configure(configure)
+        return JsonResponse({"redirect_url": reverse("quiz:preview")})

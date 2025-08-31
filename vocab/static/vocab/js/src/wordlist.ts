@@ -50,6 +50,8 @@ export class WordlistSelector{
     readonly selectorElement: HTMLSelectElement;
     readonly wordlists: Wordlist[] = [];
 
+    ready: Promise<void | Record<string, any>>;
+
     constructor(){
         const elem = document.getElementById(WordlistSelector.selectorId) as HTMLSelectElement | null;
         if (elem == null){
@@ -58,19 +60,7 @@ export class WordlistSelector{
             this.selectorElement = elem;
         }
         const currentWordlistId = Number(this.selectorElement.dataset.id);
-        fetch(appUrls["wordbank:all_wordlist"]!, {
-            method: "GET",
-        })
-        .then(async (response) => {
-            const resData = await response.json().catch(() => ({}));
-            if (!response.ok){
-                const err = resData.error || resData.err;
-                alert(err || "何らかのエラーが発生しました");
-                throw new Error("read_failed");
-            }
-            return resData;
-        })
-        .then((response) => {
+        this.ready = this.init().then((response) => {
             for (let wlData of response.wordlists){
                 const isCurrentWordlist = (wlData.id == currentWordlistId);
                 const wl = new Wordlist(wlData.id, wlData.name, isCurrentWordlist);
@@ -81,6 +71,10 @@ export class WordlistSelector{
                 }
             }
         });
+    }
+
+    protected async init(){
+        return await runGetMethod(appUrls["wordbank:all_wordlist"]!, "read all wordlist failed");
     }
 
     pushWordlist(wordlist: Wordlist, idx: number | null = null){
