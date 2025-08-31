@@ -153,8 +153,7 @@ export class WordTable {
 
     /**
      * コンストラクタ
-     * @param runCreateTable 
-     * 初期化処理として単語帳に掲載されている単語で単語テーブルを作成するかどうか.
+     * @param runCreateTable 初期化処理として単語帳に掲載されている単語で単語テーブルを作成するかどうか.
      */
     constructor(runCreateTable: boolean = true){
         if (WordTable._instance) throw new Error("This class is a singleton");

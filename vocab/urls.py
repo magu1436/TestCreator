@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import EditView, RegisterView, DeleteView, UpdateView
+from .views import EditView, RegisterView, DeleteView, UpdateView, ReferenceView
 
 app_name = "vocab"
 
@@ -9,4 +9,5 @@ urlpatterns = [
     path("editor/register/", RegisterView.as_view(), name="register"),
     path("editor/delete/", DeleteView.as_view(), name="delete"),
     path("editor/update/", UpdateView.as_view(), name="update"),
+    path("reference/", ReferenceView.as_view(), name="reference"),
 ]

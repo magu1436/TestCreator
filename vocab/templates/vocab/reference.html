@@ -1,0 +1,56 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+単語閲覧画面
+{% endblock %}
+
+{% block loadcss %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'vocab/css/referencestyle.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js" defer></script>
+{% endblock %}
+
+
+{% block content %}
+<div class="d-flex flex-column flex-grow-1 h-100 w-75 mx-auto">
+    <div id="wordlist_saerch" class="d-flex flex-row justify-content-evenly gap-5 mb-2">
+        <select id="wordlist-selector" class="w-100" data-id="{{ target_word_list.id }}">
+        </select>
+
+        <div id="word-number-ranged" class="d-flex">
+            <input id="start-range" type="number">
+            <a> ～ </a>
+            <input id="end-range" type="number">
+        </div>
+
+        <div class="input-group">
+            <input id="search_box" type="text" class="form-control" placeholder="キーワード...">
+            <button class="btn btn-outline-secondary" type="button" onclick="searchWord()">検索</button>
+        </div>
+    </div>
+
+    {% include 'vocab/word-table.html' %}
+</div>
+{% endblock %}
+
+
+{% block loadjs %}
+<script type="importmap">
+{
+  "imports": {
+    "@shared/": "{% static 'shared/dist/' %}",
+    "js-cookie": "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.mjs"
+  }
+}
+</script>
+<script id="app-urls" type="application/json">
+{
+    "vocab:reference": "{% url 'vocab:reference' %}",
+    "wordbank:read": "{% url 'wordbank:read' %}",
+    "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}"
+}
+</script>
+<script type="module" src="{% static 'vocab/js/dist/reference.js' %}"></script>
+
+{% endblock %}

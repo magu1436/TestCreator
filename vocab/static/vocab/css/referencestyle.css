@@ -1,0 +1,28 @@
+
+.word-checkbox-div {
+    display: none;
+}
+
+.checkbox-div {
+    display: none;
+}
+
+.word-number {
+    width: 10%;
+}
+
+.word-term {
+    width: 30%;
+}
+
+.word-meaning {
+    width: 40%;
+}
+
+.word-edited-by {
+    width: 20%;
+}
+
+.selectable-element-content {
+    width: 100%;
+}

@@ -32,6 +32,19 @@ class EditView(LoginRequiredMixin, TemplateView):
         return self.get(request)
 
 
+class ReferenceView(TemplateView):
+    def get(self, request):
+        if not self.request.GET:
+            target_wordlist = WordList.objects.first()
+        else:
+            target_wordlist_id = int(self.request.GET.get("wordlist"))
+            target_wordlist = get_object_or_404(WordList, pk=target_wordlist_id)
+        param = {
+            "target_word_list": target_wordlist,
+        }
+        return render(request, "vocab/reference.html", param)
+
+
 class RegisterView(TemplateView):
     def post(self, request):
         data: dict = request.POST.copy()
