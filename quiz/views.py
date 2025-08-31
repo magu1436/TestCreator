@@ -48,11 +48,9 @@ class CreateTestView(TemplateView):
             "num_question": num_question,
             "sequence": sequence,
             "words": words,
-            "mode": "problem",
         }
 
         html = render_to_string("quiz/quiz.html", param, request)
-        print(html)
         create_pdf(html)
 
         return JsonResponse({"ok": True})
