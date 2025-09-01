@@ -9,6 +9,8 @@ from django.core.files.uploadedfile import UploadedFile
 from openai import OpenAI
 from openai.types import CompletionUsage
 
+from ocr.models import APICostLog
+
 RATE = 146.85
 
 class Word(TypedDict):
@@ -18,7 +20,9 @@ class Word(TypedDict):
 
 class RequestResult(TypedDict):
     words: list[Word]
-    cost: float
+    request_id: str
+    estimated_cost: float
+    api_model: str
     errors: list[Exception]
 
 class GPTModel(ABC):
@@ -38,6 +42,7 @@ class GPTModel(ABC):
     def request(self, file: UploadedFile) -> RequestResult:
         client = OpenAI(api_key=settings.API_KEY)
         result: RequestResult = {"words": None, "cost": None, "errors": None}
+        print("start ocr.........")
         try:
             res = client.chat.completions.create(
                 model=self.model,
@@ -61,10 +66,14 @@ class GPTModel(ABC):
                 response_format={"type": "json_object"},
                 temperature=0.,
             )
+            print(res)
             result["words"] = self.__to_word_dict_list(res.choices[0].message.content)
-            result["cost"] = self.__calc_balance(res.usage)
+            result["estimated_cost"] = self.__calc_balance(res.usage)
+            result["request_id"] = res.id
+            result["api_model"] = res.model
         except Exception as e:
             result["errors"].append(e)
+        print(".........end ocr")
         return result
 
 

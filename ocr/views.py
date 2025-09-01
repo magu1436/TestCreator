@@ -3,6 +3,8 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 
 from .modules.gpt import GPT4oMini
+from .models import APICostLog
+from .forms import APICostLogForm
 from wordbank.models import WordList
 
 
@@ -21,8 +23,10 @@ class OcrView(TemplateView):
         files = request.FILES.getlist("files")
         gpt = GPT4oMini()
         res = gpt.request(files[0])
-        print(res["words"])
-        print(res["cost"])
+        print(res)
+        form = APICostLogForm(data=(res | {"user": self.request.user}))
+        if form.is_valid():
+            form.save()
 
         return JsonResponse({
             "message": f"{len(files)}件アップロードしました",
