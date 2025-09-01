@@ -43,6 +43,11 @@
                 <a href="{% url 'vocab:editor' %}" class="btn btn-secondary btn-lg btn-column w-50 flex-fill text-center d-flex align-items-center justify-content-center">
                     単語帳編集
                 </a>
+                {% if user.is_superuser %}
+                <a href="./admin" class="btn btn-secondary btn-lg btn-column w-50 flex-fill text-center d-flex align-items-center justify-content-center">
+                    Django 管理サイト
+                </a>
+                {% endif %}
 
                 <!-- ログインボタンまたはログアウトボタン -->
                 {% if user.is_authenticated %}
