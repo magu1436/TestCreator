@@ -1,5 +1,16 @@
 
 {% load static %}
-<a href="{% url 'home' %}">
-    <img src="{% static 'images/logo.png' %}" alt="ロゴ画像" style="height: 100%; width: auto;">
-</a>
+<div id="base-header" class="d-flex justify-content-between h-100">
+    <a href="{% url 'home' %}" class="m-2">
+        <img src="{% static 'images/logo.png' %}" alt="ロゴ画像" style="height: 100%; width: auto;">
+    </a>
+
+    <div class="d-flex flex-column align-items-center align-self-center m-2">
+        <h1>ログインユーザー</h1>
+        {% if user.is_authenticated %}
+            <h2>{{ user.username }}</h2>
+        {% else %}
+            <h2>未ログイン</h2>
+        {% endif %}
+    </div>
+</div>
