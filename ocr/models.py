@@ -8,6 +8,7 @@ class APICostLog(models.Model):
         settings.AUTH_USER_MODEL,
         verbose_name="利用者",
         on_delete=models.PROTECT,
+        related_name="api_log",
     )
     estimated_cost = models.FloatField(
         verbose_name="推定費用",
@@ -25,3 +26,9 @@ class APICostLog(models.Model):
         verbose_name="リクエスト日時",
         auto_now=True,
     )
+
+    class Meta:
+        ordering = ["created_at", "user"]
+
+    def __str__(self):
+        return f"{self.user.username}: {self.created_at} log"
