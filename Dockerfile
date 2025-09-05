@@ -34,5 +34,8 @@ COPY . /app
 RUN python manage.py collectstatic --noinput
 
 # Gunicorn で起動
-# 例: プロジェクト名は TestCreator
-CMD ["gunicorn", "TestCreator.wsgi:application", "--bind", "0.0.0.0:${PORT}", "--workers", "2", "--threads", "4", "--timeout", "120"]
+CMD exec gunicorn TestCreator.wsgi:application \
+    --bind 0.0.0.0:$PORT \
+    --workers 2 \
+    --threads 4 \
+    --timeout 120
