@@ -169,7 +169,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 if os.environ.get("GAE_ENV", "").startswith("standard") or os.environ.get("K_SERVICE"):
     # GCP環境
