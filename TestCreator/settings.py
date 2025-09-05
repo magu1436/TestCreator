@@ -87,10 +87,18 @@ WSGI_APPLICATION = 'TestCreator.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-CLOUDSQL_CONNECTION_NAME = os.getenv("CLOUDSQL_CONNECTION_NAME")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+# BOM除去 + 前後空白除去
+def _clean(s: str | None) -> str:
+    if not s:
+        return ""
+    return s.replace("\ufeff", "").strip()
+
+CLOUDSQL_CONNECTION_NAME = _clean(os.getenv("CLOUDSQL_CONNECTION_NAME"))
+DB_NAME = _clean(os.getenv("DB_NAME"))
+DB_USER = _clean(os.getenv("DB_USER"))
+DB_PASSWORD = _clean(os.getenv("DB_PASSWORD"))
+
 
 if CLOUDSQL_CONNECTION_NAME and DB_NAME and DB_USER and DB_PASSWORD:
     # 本番（Cloud Run）用：Cloud SQL Unix ソケット

@@ -33,9 +33,8 @@ COPY . /app
 # Static をビルド時に収集（WhiteNoise配布）
 RUN python manage.py collectstatic --noinput
 
-# Gunicorn で起動
-CMD exec gunicorn TestCreator.wsgi:application \
-    --bind 0.0.0.0:$PORT \
-    --workers 2 \
-    --threads 4 \
-    --timeout 120
+# エントリポイントスクリプト
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+CMD ["/bin/sh", "/app/entrypoint.sh"]
