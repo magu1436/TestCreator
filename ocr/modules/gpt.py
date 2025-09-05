@@ -41,7 +41,7 @@ class GPTModel(ABC):
     
     def request(self, file: UploadedFile) -> RequestResult:
         client = OpenAI(api_key=settings.API_KEY)
-        result: RequestResult = {"words": None, "cost": None, "errors": None}
+        result: RequestResult = {"words": None, "cost": None, "errors": []}
         print("start ocr.........")
         try:
             res = client.chat.completions.create(
