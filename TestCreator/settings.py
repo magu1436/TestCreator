@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,6 +44,7 @@ INSTALLED_APPS = [
     'vocab',
     'ocr',
     'quiz',
+    "whitenoise.runserver_nostatic",
 ]
 
 AUTH_USER_MODEL = 'accounts.AdminUser'
@@ -53,6 +53,7 @@ LOGIN_REDIRECT_URL = "home"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -84,12 +85,31 @@ WSGI_APPLICATION = 'TestCreator.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+CLOUDSQL_CONNECTION_NAME = os.getenv("CLOUDSQL_CONNECTION_NAME")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+if CLOUDSQL_CONNECTION_NAME and DB_NAME and DB_USER and DB_PASSWORD:
+    # 本番（Cloud Run）用：Cloud SQL Unix ソケット
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": DB_NAME,
+            "USER": DB_USER,
+            "PASSWORD": DB_PASSWORD,
+            "HOST": f"/cloudsql/{CLOUDSQL_CONNECTION_NAME}",
+            "PORT": "5432",
+        }
     }
-}
+else:
+    # フォールバック：ビルド/ローカル用（collectstatic時にDB不要でもsettings評価で落ちないように）
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -126,7 +146,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
@@ -137,7 +159,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-load_dotenv()
-API_KEY = os.environ.get("API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 OUTPUT_PDF_DIR = MEDIA_ROOT + "/exports/"
