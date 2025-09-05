@@ -140,4 +140,10 @@ MEDIA_URL = '/media/'
 load_dotenv()
 API_KEY = os.environ.get("API_KEY")
 
-OUTPUT_PDF_DIR = MEDIA_ROOT + "/exports/"
+if os.environ.get("GAE_ENV", "").startswith("standard") or os.environ.get("K_SERVICE"):
+    # GCP環境
+    OUTPUT_PDF_DIR = Path("/tmp/exports")
+else:
+    # ローカル開発環境
+    OUTPUT_PDF_DIR = BASE_DIR / MEDIA_ROOT / "exports"
+OUTPUT_PDF_DIR.mkdir(parents=True, exist_ok=True)
