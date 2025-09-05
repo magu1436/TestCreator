@@ -6,3 +6,5 @@ node_modules
 staticfiles
 .env
 *.pem
+media/
+*.sqlite3
