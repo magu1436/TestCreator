@@ -9,11 +9,14 @@ export class RangeBox {
     protected static _originalRangeBoxDiv: HTMLDivElement | null;
     protected static _originalRangeBox: RangeBox | null;
 
+    static wordlistMinNumber: number;
+    static wordlistMaxNumber: number;
+
     readonly elem: HTMLDivElement;
     readonly startBoxElem: HTMLInputElement;
     readonly endBoxElem: HTMLInputElement;
-    protected _start: number = 0;
-    protected _end: number = Infinity;
+    protected _start?: number;
+    protected _end?: number;
 
     constructor(){
         if (!RangeBox._originalRangeBoxDiv){
@@ -26,8 +29,10 @@ export class RangeBox {
         }
         this.startBoxElem = this.elem.getElementsByClassName(RangeBox.originalLeftBoxClassName)![0] as HTMLInputElement;
         this.startBoxElem.addEventListener("change", () => {this.onStartBoxChange()});
+        this.startBoxElem.value = "";
         this.endBoxElem = this.elem.getElementsByClassName(RangeBox.originalRightBoxClassName)![0] as HTMLInputElement;
         this.endBoxElem.addEventListener("change", () => {this.onEndBoxChange()});
+        this.endBoxElem.value = "";
     }
 
     /**
@@ -53,7 +58,7 @@ export class RangeBox {
     }
 
     get start(){
-        return this._start;
+        return Number(this._start);
     }
 
     set start(s: number){
@@ -62,7 +67,7 @@ export class RangeBox {
     }
 
     get end(){
-        return this._end;
+        return Number(this._end);
     }
 
     set end(e: number){
@@ -81,7 +86,19 @@ export class RangeBox {
      * @returns 正しい範囲を保持しているかどうか
      */
     isCorrectRange(){
-        return this._start <= this._end;
+        if (Number.isNaN(this.start) || Number.isNaN(this.end)) return false;
+        return this.start <= this.end;
+    }
+
+    /**
+     * 自身が保持している開始番号と終了番号が正しい値であるか判定するメソッド.  
+     * 正しい値: 数値  
+     * 不正な値: NaN, undefined, ...  
+     * @returns 正しい値を保持しているかどうか
+     */
+    hasCorrectValues(){
+        if (!Number.isNaN(this.start) && !Number.isNaN(this.end) && this._start && this._end) return true;
+        return false;
     }
 }
 
@@ -118,9 +135,20 @@ export class NumberRangeConfigure {
         this.rangeBoxesElem.appendChild(newBox.elem);
     }
 
+    /**
+     * 指定された複数の範囲を取得するためのメソッド.  
+     * 数値を入力するinput要素に不正な値(空欄など)が入力されている場合は, その範囲を飛ばした  
+     * 範囲のリストを返す.  
+     * input要素に適切な値が入力されているにも関わらず指定が間違っている場合には, アラートを  
+     * 表示してエラーを投げる.  
+     * @returns 範囲を示す連想配列のリスト
+     */
     getRanges(){
-        const ranges = []
+        const ranges = [];
         for (const box of this._boxes){
+            if (!box.hasCorrectValues()){
+                continue;
+            }
             if (!box.isCorrectRange()){
                 alert("不適切な単語番号指定があります.");
                 throw new Error("incorrect range error");
