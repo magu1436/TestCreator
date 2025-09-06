@@ -4,11 +4,11 @@
 }
 
 #wordlist-selector {
-    width: 50%;
+    width: auto;
 }
 
 #num-questions-input{
-    width: 35%;
+    width: auto;
 }
 
 #add-range-btn {
