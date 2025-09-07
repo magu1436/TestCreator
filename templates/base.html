@@ -32,5 +32,22 @@
         {% block loadjs %}
         <!-- JSファイルのロードを記述 -->
         {% endblock %}
+        
+        <script id="app-urls" type="application/json">
+        {
+            "wordbank:read": "{% url 'wordbank:read' %}",
+            "wordbank:create": "{% url 'wordbank:create' %}",
+            "wordbank:delete": "{% url 'wordbank:delete' %}",
+            "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}",
+            "quiz:preview": "{% url 'quiz:preview' %}",
+            "quiz:create": "{% url 'quiz:create' %}",
+            "vocab:delete": "{% url 'vocab:delete' %}",
+            "vocab:editor": "{% url 'vocab:editor' %}",
+            "vocab:register": "{% url 'vocab:register' %}",
+            "vocab:reference": "{% url 'vocab:reference' %}",
+            "vocab:update": "{% url 'vocab:update' %}",
+            "ocr:ocr": "{% url 'ocr:ocr' %}"
+        }
+        </script>
     </body>
 </html>

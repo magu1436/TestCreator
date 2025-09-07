@@ -1,6 +1,6 @@
 import {SelectableItem} from "@shared/selectable-item.js";
 import { getCSRFToken, runPostMethod } from "@shared/server-connect-helper.js";
-import {appUrls} from "./utils.js";
+import { getUrl } from "@shared/utils.js";
 
 interface WordRowContents {
     content: HTMLDivElement,
@@ -175,10 +175,7 @@ export class WordTable {
      * 単語テーブルを作成する初期化処理.
      */
     protected createWordTable(){
-        const urlName = "wordbank:read"
-        const url = appUrls[urlName];
-        if(!url) throw new Error(`${urlName} app doesn't registered.`);
-        fetch(url, {
+        fetch(getUrl("wordbank:read"), {
             method: "POST",
             headers: {"X-CSRFToken": getCSRFToken()},
             body: JSON.stringify({"id": this.wordlistId})
@@ -320,7 +317,7 @@ export class WordTable {
      * 編集状態を初期化する(全てnull)にするメソッド.
      */
     protected resetCurrentEditorState(){
-       this.setCurrentEditorState(null, null, null);
+        this.setCurrentEditorState(null, null, null);
     }
 
     /**
@@ -338,14 +335,16 @@ export class WordTable {
         input.addEventListener("keydown", (e) => {
             switch (e.key){
                 case "Enter":
-                    this.commitEdit();
+                    WordTable.currentEditorInput?.blur();
                     break;
                 case "Escape":
                     this.cancelEdit();
                     break;
             }
         });
-        input.addEventListener("blur", () => {this.commitEdit()});
+        input.addEventListener("blur", () => {
+            this.commitEdit();
+        });
         return input
     }
 
@@ -372,6 +371,7 @@ export class WordTable {
             throw new Error("該当のエレメントがありません.");
         }
 
+        // 単語番号順を維持するために, 一度削除して挿入することで変更後の単語番号でも適切な位置に単語行を挿入する
         this.removeWordRow(row)
         this.registerWordRow(row)
 
@@ -382,7 +382,7 @@ export class WordTable {
                 "term": row.term,
                 "meaning": row.meaning,
             });
-            const data = await runPostMethod(appUrls["vocab:update"]!, body, "update failed");
+            const data = await runPostMethod(getUrl("vocab:update"), body, "update failed");
 
             row.editor = data.editor;
         }

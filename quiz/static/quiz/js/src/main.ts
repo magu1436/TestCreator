@@ -1,5 +1,5 @@
 import { runPostMethod, getCSRFToken } from "@shared/server-connect-helper.js";
-import { appUrls } from "./utils.js";
+import { getUrl } from "@shared/utils.js"
 import { NumberRangeConfigure, getNumQuestions, RadioConfigure } from "./configures.js";
 import { wordlistSelector } from "./wordlist_configure.js";
 
@@ -10,7 +10,7 @@ const seqRadio = new RadioConfigure("question-sequence-radio");
 
 document.getElementById("create-btn")?.addEventListener("click", async () => {
     showLoadingOverlay();
-    const res = await fetch(appUrls["quiz:create"]!, {
+    const res = await fetch(getUrl("quiz:create"), {
         method: "POST",
         headers: {"X-CSRFToken": getCSRFToken()},
         body: get_config(),
@@ -29,7 +29,7 @@ document.getElementById("create-btn")?.addEventListener("click", async () => {
 })
 
 document.getElementById("preview-btn")?.addEventListener("click", async() => {
-    const data = await runPostMethod(appUrls["quiz:preview"]!, JSON.stringify({
+    const data = await runPostMethod(getUrl("quiz:preview"), JSON.stringify({
         ranges: ns.getRanges(),
         wordlistId: wordlistSelector.currentWordlist.id,
         numQuestion: getNumQuestions(),

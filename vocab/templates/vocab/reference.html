@@ -44,13 +44,6 @@
   }
 }
 </script>
-<script id="app-urls" type="application/json">
-{
-    "vocab:reference": "{% url 'vocab:reference' %}",
-    "wordbank:read": "{% url 'wordbank:read' %}",
-    "wordbank:all_wordlist": "{% url 'wordbank:all_wordlist' %}"
-}
-</script>
 <script type="module" src="{% static 'vocab/js/dist/reference.js' %}"></script>
 
 {% endblock %}
