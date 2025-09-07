@@ -1,6 +1,6 @@
 import { runPostMethod } from "@shared/server-connect-helper.js";
+import { getUrl } from "@shared/utils.js";
 import { WordlistSelector } from "@vocab/wordlist.js";
-import { appUrls } from "./utils.js";
 import { DropZone } from "./dropzone.js";
 import { ProgressBar } from "./progressbar.js";
 import { ResultWordRow, ResultWordTable, registerAllWordsToDatabase } from "./read-word-table.js";
@@ -25,7 +25,7 @@ const onSubmit = async () => {
     for (const f of dropzone.droppedFiles){
         const fd = new FormData();
         fd.append("files", f.file);
-        const data = await runPostMethod(appUrls["ocr:ocr"]!, fd);
+        const data = await runPostMethod(getUrl("ocr:ocr"), fd);
         console.log(data.message);
         data.words.forEach((w: { number: number; term: string; meaning: string; }) => {
             const wr = new ResultWordRow(w.number, w.term, w.meaning);

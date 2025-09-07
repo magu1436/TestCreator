@@ -178,3 +178,6 @@ else:
     # ローカル開発環境
     OUTPUT_PDF_DIR = BASE_DIR / MEDIA_ROOT / "exports"
 OUTPUT_PDF_DIR.mkdir(parents=True, exist_ok=True)
+
+# ブラウザを閉じた際にログアウトさせる
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

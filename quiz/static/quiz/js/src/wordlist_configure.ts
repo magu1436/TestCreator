@@ -1,6 +1,6 @@
 import { WordlistSelector, Wordlist } from "@vocab/wordlist.js";
 import { runPostMethod } from "@shared/server-connect-helper.js";
-import { appUrls } from "./utils.js";
+import { getUrl } from "@shared/utils.js";
 import { RangeBox, NumberRangeConfigure } from "./configures.js"
 
 
@@ -11,7 +11,7 @@ export const wordlistSelector = new WordlistSelector()
  */
 const setWordlistData = async () => {
     for (const wl of wordlistSelector.wordlists){
-        const data = await runPostMethod(appUrls["wordbank:read"]!, JSON.stringify({id: wl.id}));
+        const data = await runPostMethod(getUrl("wordbank:read"), JSON.stringify({id: wl.id}));
         const nums = data.words.map((w: {"number": number}) => w.number);
         wl.element.dataset.min = String(Math.min(...nums));
         wl.element.dataset.max = String(Math.max(...nums));
