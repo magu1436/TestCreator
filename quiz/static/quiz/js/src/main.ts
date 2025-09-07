@@ -9,14 +9,18 @@ const seqRadio = new RadioConfigure("question-sequence-radio");
 
 
 document.getElementById("create-btn")?.addEventListener("click", async () => {
+    showLoadingOverlay();
     const res = await fetch(appUrls["quiz:create"]!, {
         method: "POST",
         headers: {"X-CSRFToken": getCSRFToken()},
         body: get_config(),
     });
 
+    hideLoadingOverlay();
+
     if (!res.ok) {
         alert("PDF生成時にエラーが発生しました。開発者に連絡してください。");
+        return;
     }
 
     const blob = await res.blob();
@@ -44,3 +48,7 @@ const get_config = () => {
         sequence: seqRadio.getCheckedButton().id,
     })
 }
+
+const loadingOverlay = document.getElementById("loading") as HTMLDivElement;
+const showLoadingOverlay = () => { loadingOverlay.classList.toggle("d-none", false); };
+const hideLoadingOverlay = () => { loadingOverlay.classList.toggle("d-none", true); };

@@ -14,3 +14,8 @@
 #add-range-btn {
     margin: 0 auto;
 }
+
+#loading {
+    background: rgba(0, 0, 0, .5);
+    z-index: 10000;
+}
