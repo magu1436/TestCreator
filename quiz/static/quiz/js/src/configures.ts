@@ -42,7 +42,9 @@ export class RangeBox {
      */
     protected onStartBoxChange(){
         let num = Number(this.startBoxElem.value);
-        if (Number.isNaN(num)) num = 0;
+        if (Number.isNaN(num)) num = RangeBox.wordlistMinNumber;
+        if (num > RangeBox.wordlistMaxNumber || num < RangeBox.wordlistMinNumber) num = RangeBox.wordlistMinNumber;
+        this.startBoxElem.value = String(num);
         this._start = num;
     }
 
@@ -53,7 +55,9 @@ export class RangeBox {
      */
     protected onEndBoxChange(){
         let num = Number(this.endBoxElem.value);
-        if (Number.isNaN(num)) num = Infinity;
+        if (Number.isNaN(num)) num = RangeBox.wordlistMaxNumber;
+        if (num > RangeBox.wordlistMaxNumber || num < RangeBox.wordlistMinNumber) num = RangeBox.wordlistMaxNumber;
+        this.endBoxElem.value = String(num);
         this._end = num;
     }
 
@@ -82,7 +86,7 @@ export class RangeBox {
 
     /**
      * 保持している `start` と `end` の関係性が正しいかどうか判別するメソッド.  
-     * `start` <= `end` の場合に `true` を返す.  
+     * `start <= end` の場合に `true` を返す.  
      * @returns 正しい範囲を保持しているかどうか
      */
     isCorrectRange(){
