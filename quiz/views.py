@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pypdf
+
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.http import JsonResponse, FileResponse
@@ -10,7 +12,7 @@ from django.utils.encoding import iri_to_uri
 from django.conf import settings
 
 from wordbank.models import WordList
-from .modules.creator import create_pdf
+from .modules.creator import create_pdf, create_name
 from .modules.configure import create_configure
 
 
@@ -27,8 +29,16 @@ class CreateTestView(TemplateView):
         configure = json.loads(request.body)
         context = create_configure(configure)
 
-        html = render_to_string("quiz/quiz.html", context, request)
-        file_name = create_pdf(html)
+        pdfs = []
+        for mode in ("question", "answer"):
+            context["mode"] = mode
+            html = render_to_string("quiz/quiz.html", context, request)
+            pdfs.append(create_pdf(html))
+        
+        writer = pypdf.PdfWriter()
+        [writer.append(Path(settings.OUTPUT_PDF_DIR, pdf)) for pdf in pdfs]
+        file_name = create_name()
+        writer.write(Path(settings.OUTPUT_PDF_DIR, file_name))
 
         file_path = Path(settings.OUTPUT_PDF_DIR, file_name)
         f = open(file_path, "rb")

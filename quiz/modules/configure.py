@@ -20,6 +20,7 @@ class Config(TypedDict):
     num_question: int
     sequence: Literal["ランダム", "番号順"]
     words: list[dict[str, int | str]]
+    mode: Literal["question", "answer"]
 
 
 def create_configure(configure) -> Config:

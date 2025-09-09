@@ -96,11 +96,7 @@ html, body {
   white-space: pre-wrap;   /* 改行と折返し */
   word-break: break-word;  /* 長語の折返し */
 }
-
-/* ----------- モード切替（問題/解答） ----------- */
-#scope-question .meaning-text { visibility: hidden; }
-
-#scope-answer .meaning-text { visibility: visible; }
+.question { visibility: hidden; }
 
 /* 改ページ */
 .page-break {

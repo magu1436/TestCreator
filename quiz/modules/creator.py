@@ -1,5 +1,4 @@
 
-import datetime
 from pathlib import Path
 from typing import Final
 
@@ -20,7 +19,7 @@ def create_pdf(html: str):
     Return:
         str: 作成したファイルの名前.
     """
-    file_name = __create_name()
+    file_name = create_name()
     HTML(
         string=html, 
         base_url=settings.BASE_DIR
@@ -30,6 +29,6 @@ def create_pdf(html: str):
     )
     return file_name
 
-def __create_name():
+def create_name():
     now = timezone.localtime(timezone.now())
     return now.strftime(FILE_NAME_FORMAT)
