@@ -70,7 +70,6 @@ html, body {
 .row {
   break-inside: avoid;      /* 列分割の途中改行を抑止 */
   border: 1px solid #dee2e6;
-  padding: 2mm 0;
 }
 /* カード間の余白。境界を連続させたい場合は 0 に */
 .row + .row { margin-top: -1px; }
@@ -79,7 +78,7 @@ html, body {
 .row:nth-of-type(even) { background: #fcfcfd; }
 
 .cell { 
-    padding: 2mm; 
+    padding: 7mm 2mm;
     border-right: 1px solid #dee2e6; 
     box-sizing: border-box;
     display: flex;
@@ -96,11 +95,7 @@ html, body {
   white-space: pre-wrap;   /* 改行と折返し */
   word-break: break-word;  /* 長語の折返し */
 }
-
-/* ----------- モード切替（問題/解答） ----------- */
-#scope-question .meaning-text { visibility: hidden; }
-
-#scope-answer .meaning-text { visibility: visible; }
+.question { visibility: hidden; }
 
 /* 改ページ */
 .page-break {
