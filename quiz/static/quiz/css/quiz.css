@@ -1,7 +1,7 @@
 /* ----------- ページ設定 ----------- */
 @page {
   size: A4 portrait;
-  margin: 14mm 14mm 16mm 14mm; /* 上右下左 */
+  margin: 14mm 5mm 16mm 5mm; /* 上右下左 */
 }
 
 html, body {
