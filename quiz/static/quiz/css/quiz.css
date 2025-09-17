@@ -1,7 +1,7 @@
 /* ----------- ページ設定 ----------- */
 @page {
   size: A4 portrait;
-  margin: 14mm 5mm 16mm 5mm; /* 上右下左 */
+  margin: 14mm 4mm 16mm 4mm; /* 上右下左 */
 }
 
 html, body {
@@ -69,7 +69,7 @@ html, body {
 /* 行＝1語。列途中やページ途中で折れにくくする */
 .row {
   break-inside: avoid;      /* 列分割の途中改行を抑止 */
-  border: 1px solid #dee2e6;
+  border: 2px solid #53afbd;
 }
 /* カード間の余白。境界を連続させたい場合は 0 に */
 .row + .row { margin-top: -1px; }
@@ -79,7 +79,7 @@ html, body {
 
 .cell { 
     padding: 7mm 2mm;
-    border-right: 1px solid #dee2e6; 
+    border-right: 2px solid #53afbd; 
     box-sizing: border-box;
     display: flex;
     align-items: center;
