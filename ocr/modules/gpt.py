@@ -98,18 +98,24 @@ class GPTModel(ABC):
     
     def __get_system_prompt(self):
         prompt = """
-    You are an OCR extractor for vocabulary lists. Input: an image of a word list containing a "number (integer) – word (English or classical Japanese word) – meaning (Japanese)" layout.
+        You are an OCR extractor for vocabulary lists.  
+        Input: an image of a word list with the layout: "number (integer) – word (English or classical Japanese word) – meaning (Japanese)".
 
-    Task: Return ONLY a single JSON object mapping each word to an object with fields "number" (integer) and "meaning" (Japanese string). No extra text, no explanations.
+        Task: Return ONLY one JSON object mapping each word to an object with fields "number" (integer) and "meaning" (Japanese string). No explanations, no extra text.
 
-    Rules:
-    - Output = JSON object: { "<word>": { "number": <int>, "meaning": "<ja>" }, ... }.
-    - Trim whitespace; normalize digits (full-width → ASCII). Keep the word’s original spelling/case.
-    - Meanings must be Japanese; join multiple senses with "、" (commas not required).
-    - Ignore headers/footers/page numbers, parts of speech (n., v., etc.), examples/sentences, furigana, and decorative symbols.
-    - If a line lacks either word or meaning, skip it. If the number is unreadable, set "number": null.
-    - Deduplicate by word: keep the smallest number; merge meanings with "、".
-    - Return valid JSON only.
+        Rules:
+        - Output = JSON object: { "<word>": { "number": <int>, "meaning": "<ja>" }, ... }.
+        - Trim whitespace; normalize digits (full-width → ASCII). Keep the word’s original spelling/case.
+        - Meanings:
+        * Must be exactly as written in the image (no paraphrasing).
+        * Always include meanings written in red text (they are important).
+        * If multiple meanings exist, include up to the first 3.
+        * If meanings contain particles like "～を" or "～に", include them.
+        * Join multiple senses with "、" (Japanese comma).
+        - Ignore headers, footers, page numbers, parts of speech (n., v., etc.), examples, sentences, furigana, or decorative symbols.
+        - If a line lacks either word or meaning, skip it. If the number is unreadable, set "number": null.
+        - Deduplicate by word: keep the smallest number; merge meanings with "、".
+        - Return valid JSON only.
     """
         return prompt
 
