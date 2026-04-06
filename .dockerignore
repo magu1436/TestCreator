@@ -8,3 +8,4 @@ staticfiles
 *.pem
 media/
 *.sqlite3
+isrgrootx1.pem
