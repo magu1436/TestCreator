@@ -7,5 +7,7 @@
         "wordbank",
         "wordlist",
         "wordlists"
-    ]
+    ],
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.terminal.useEnvFile": true
 }
