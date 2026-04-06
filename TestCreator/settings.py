@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-enz9sj4*_4a5ll=^l=z2_h+t44fr=yv@h)0d^v9#=s*mx8y*=7'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -94,14 +94,41 @@ def _clean(s: str | None) -> str:
         return ""
     return s.replace("\ufeff", "").strip()
 
+# --- TiDB 用 ---
+TIDB_HOST = _clean(os.getenv("TIDB_HOST"))
+TIDB_PORT = _clean(os.getenv("TIDB_PORT")) or "4000"
+TIDB_NAME = _clean(os.getenv("TIDB_NAME"))
+TIDB_USER = _clean(os.getenv("TIDB_USER"))
+TIDB_PASSWORD = _clean(os.getenv("TIDB_PASSWORD"))
+TIDB_SSL_CA = _clean(os.getenv("TIDB_SSL_CA"))  # 必要なら
+TIDB_ENABLE = _clean(os.getenv("TIDB_ENABLE")).lower() == "true"
+
+# --- Cloud SQL(PostgreSQL) 用 ---
 CLOUDSQL_CONNECTION_NAME = _clean(os.getenv("CLOUDSQL_CONNECTION_NAME"))
 DB_NAME = _clean(os.getenv("DB_NAME"))
 DB_USER = _clean(os.getenv("DB_USER"))
 DB_PASSWORD = _clean(os.getenv("DB_PASSWORD"))
 
-
-if CLOUDSQL_CONNECTION_NAME and DB_NAME and DB_USER and DB_PASSWORD:
-    # 本番（Cloud Run）用：Cloud SQL Unix ソケット
+if TIDB_ENABLE and TIDB_HOST and TIDB_NAME and TIDB_USER and TIDB_PASSWORD:
+    # TiDB 用
+    DATABASES = {
+        "default": {
+            "ENGINE": "django_tidb",
+            "NAME": TIDB_NAME,
+            "USER": TIDB_USER,
+            "PASSWORD": TIDB_PASSWORD,
+            "HOST": TIDB_HOST,
+            "PORT": TIDB_PORT,
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "ssl": {
+                    "ca": TIDB_SSL_CA,
+                },
+            },
+        }
+    }
+elif CLOUDSQL_CONNECTION_NAME and DB_NAME and DB_USER and DB_PASSWORD:
+     # 既存の Cloud SQL(PostgreSQL) 用
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",

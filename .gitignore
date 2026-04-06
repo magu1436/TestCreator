@@ -8,6 +8,7 @@ outputs/*.pdf
 *.log
 temp/
 *.swp
+isrgrootx1.pem
 
 # Node関連
 node_modules/
