@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "").lower() == "true"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if os.getenv("CSRF_TRUSTED_ORIGINS") else []
@@ -94,23 +94,27 @@ def _clean(s: str | None) -> str:
         return ""
     return s.replace("\ufeff", "").strip()
 
-# --- TiDB 用 ---
+# --- DB設定 ---
 TIDB_HOST = _clean(os.getenv("TIDB_HOST"))
 TIDB_PORT = _clean(os.getenv("TIDB_PORT")) or "4000"
 TIDB_NAME = _clean(os.getenv("TIDB_NAME"))
 TIDB_USER = _clean(os.getenv("TIDB_USER"))
 TIDB_PASSWORD = _clean(os.getenv("TIDB_PASSWORD"))
-TIDB_SSL_CA = _clean(os.getenv("TIDB_SSL_CA"))  # 必要なら
-TIDB_ENABLE = _clean(os.getenv("TIDB_ENABLE")).lower() == "true"
+TIDB_SSL_CA = _clean(os.getenv("TIDB_SSL_CA"))
 
-# --- Cloud SQL(PostgreSQL) 用 ---
-CLOUDSQL_CONNECTION_NAME = _clean(os.getenv("CLOUDSQL_CONNECTION_NAME"))
-DB_NAME = _clean(os.getenv("DB_NAME"))
-DB_USER = _clean(os.getenv("DB_USER"))
-DB_PASSWORD = _clean(os.getenv("DB_PASSWORD"))
+tidb_available = all([
+    TIDB_HOST,
+    TIDB_NAME,
+    TIDB_USER,
+    TIDB_PASSWORD,
+    TIDB_SSL_CA,
+])
 
-if TIDB_ENABLE and TIDB_HOST and TIDB_NAME and TIDB_USER and TIDB_PASSWORD:
-    # TiDB 用
+# デバッグ環境でもなく, TiDB設定がかけていた場合には, 例外を投げる
+if not DEBUG and not tidb_available:
+    raise RuntimeError("TIDB_HOST/TIDB_NAME/TIDB_USER/TIDB_PASSWORD/TIDB_SSL_CA を設定してください。")
+
+if tidb_available:
     DATABASES = {
         "default": {
             "ENGINE": "django_tidb",
@@ -125,19 +129,7 @@ if TIDB_ENABLE and TIDB_HOST and TIDB_NAME and TIDB_USER and TIDB_PASSWORD:
                     "ca": TIDB_SSL_CA,
                 },
             },
-        }
-    }
-elif CLOUDSQL_CONNECTION_NAME and DB_NAME and DB_USER and DB_PASSWORD:
-     # 既存の Cloud SQL(PostgreSQL) 用
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": DB_NAME,
-            "USER": DB_USER,
-            "PASSWORD": DB_PASSWORD,
-            "HOST": f"/cloudsql/{CLOUDSQL_CONNECTION_NAME}",
-            "PORT": "5432",
-        }
+        },
     }
 else:
     # フォールバック：ビルド/ローカル用（collectstatic時にDB不要でもsettings評価で落ちないように）
