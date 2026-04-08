@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -110,8 +111,14 @@ tidb_available = all([
     TIDB_SSL_CA,
 ])
 
+management_command = sys.argv[1] if len(sys.argv) > 1 else ""
+db_not_required_commands = {
+    "collectstatic",
+}
+skip_db_strict_check = management_command in db_not_required_commands
+
 # デバッグ環境でもなく, TiDB設定がかけていた場合には, 例外を投げる
-if not DEBUG and not tidb_available:
+if not DEBUG and not tidb_available and not skip_db_strict_check:
     raise RuntimeError("TIDB_HOST/TIDB_NAME/TIDB_USER/TIDB_PASSWORD/TIDB_SSL_CA を設定してください。")
 
 if tidb_available:
