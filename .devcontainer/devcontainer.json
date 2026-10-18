@@ -1,0 +1,27 @@
+{
+  "name": "TestCreator",
+  "dockerComposeFile": "compose.yml",
+  "service": "app",
+  "runServices": ["app", "db"],
+  "workspaceFolder": "/workspaces/TestCreator",
+  "remoteUser": "vscode",
+  "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "24" }
+  },
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "Django", "onAutoForward": "notify" }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "waitFor": "postCreateCommand",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "ms-python.debugpy", "ms-python.vscode-pylance"],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python",
+        "task.allowAutomaticTasks": "on"
+      }
+    }
+  }
+}

@@ -44,7 +44,7 @@ class AdminUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField("登録日時", auto_now_add=True)
 
     # ユーザー作成に用いるマネージャー
-    objects = AdminUserManager()
+    objects: AdminUserManager = AdminUserManager()
 
     # 認証に用いるフィールド
     USERNAME_FIELD = "username"
