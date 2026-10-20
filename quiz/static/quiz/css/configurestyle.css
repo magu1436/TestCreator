@@ -11,6 +11,32 @@
     width: auto;
 }
 
+.range-box {
+    --input-height: 2rem;
+    --button-size: calc(var(--input-height) * 0.875);
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.range-box input[type="number"] {
+    box-sizing: border-box;
+    height: var(--input-height);
+}
+
+.range-box .next-range-btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 var(--button-size);
+    width: var(--button-size);
+    height: var(--button-size);
+    padding: 0;
+    line-height: 1;
+}
+
 #add-range-btn {
     margin: 0 auto;
 }
