@@ -19,7 +19,7 @@ export class RangeBox {
     protected _start?: number;
     protected _end?: number;
 
-    constructor(){
+    constructor(onNextRange: (box: RangeBox) => void){
         if (!RangeBox._originalRangeBoxDiv){
             RangeBox._originalRangeBoxDiv = document.getElementsByClassName(RangeBox.originalElemClassName)![0] as HTMLDivElement;
             if (!RangeBox) throw new Error(`${RangeBox.originalElemClassName} element have not been found.`);
@@ -35,7 +35,7 @@ export class RangeBox {
         this.endBoxElem.addEventListener("change", () => {this.onEndBoxChange()});
         this.endBoxElem.value = "";
         this.nextRangeButtonElem = this.elem.querySelector<HTMLButtonElement>(".next-range-btn")!;
-        this.nextRangeButtonElem.addEventListener("click", () => this.moveToNextRange());
+        this.nextRangeButtonElem.addEventListener("click", () => onNextRange(this));
     }
 
     /**
@@ -62,26 +62,6 @@ export class RangeBox {
         if (num > RangeBox.wordlistMaxNumber || num < RangeBox.wordlistMinNumber) num = RangeBox.wordlistMaxNumber;
         this.endBoxElem.value = String(num);
         this._end = num;
-    }
-
-    /**
-     * 同じ幅を保って次の範囲へ移動する。末尾を超える場合は変更しない。
-     */
-    protected moveToNextRange(){
-        const start = this.startBoxElem.valueAsNumber;
-        const end = this.endBoxElem.valueAsNumber;
-        const min = RangeBox.wordlistMinNumber;
-        const max = RangeBox.wordlistMaxNumber;
-        if (![start, end, min, max].every(Number.isSafeInteger)) return;
-        if (start < min || start > end || end > max) return;
-
-        const width = end - start + 1;
-        const nextStart = end + 1;
-        const nextEnd = end + width;
-        if (nextEnd > max) return;
-
-        this.start = nextStart;
-        this.end = nextEnd;
     }
 
     get start(){
@@ -147,7 +127,7 @@ export class NumberRangeConfigure {
 
     constructor(){
         if (NumberRangeConfigure._instance) throw new Error("numberRangeConfigure is singleton.");
-        this._boxes = [new RangeBox()];
+        this._boxes = [new RangeBox(box => this.moveToNextRange(box))];
         this.rangeBoxesElem = document.getElementById(NumberRangeConfigure.rangeBoxesId) as HTMLDivElement;
         this.addRangeButtonElem = document.getElementById(NumberRangeConfigure.addRangeButtonId) as HTMLButtonElement;
         this.addRangeButtonElem.addEventListener("click", () => {this.addRangeBox()});
@@ -157,9 +137,34 @@ export class NumberRangeConfigure {
      * 単語番号指定ボックスを追加するメソッド.
      */
     protected addRangeBox(){
-        const newBox = new RangeBox();
+        const newBox = new RangeBox(box => this.moveToNextRange(box));
         this._boxes = [...this._boxes, newBox];
         this.rangeBoxesElem.appendChild(newBox.elem);
+        return newBox;
+    }
+
+    /**
+     * 対象の範囲だけを次へ進め、末尾をまたぐ場合は先頭側の範囲を追加する。
+     */
+    protected moveToNextRange(box: RangeBox){
+        const start = box.startBoxElem.valueAsNumber;
+        const end = box.endBoxElem.valueAsNumber;
+        const min = RangeBox.wordlistMinNumber;
+        const max = RangeBox.wordlistMaxNumber;
+        if (![start, end, min, max].every(Number.isSafeInteger)) return;
+        if (start < min || start > end || end > max) return;
+
+        const width = end - start + 1;
+        const nextStart = end === max ? min : end + 1;
+        const remaining = max - nextStart + 1;
+
+        box.start = nextStart;
+        box.end = nextStart + Math.min(width, remaining) - 1;
+        if (width > remaining){
+            const overflowBox = this.addRangeBox();
+            overflowBox.start = min;
+            overflowBox.end = min + (width - remaining) - 1;
+        }
     }
 
     /**
