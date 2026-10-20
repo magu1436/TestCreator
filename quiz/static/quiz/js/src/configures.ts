@@ -15,6 +15,7 @@ export class RangeBox {
     readonly elem: HTMLDivElement;
     readonly startBoxElem: HTMLInputElement;
     readonly endBoxElem: HTMLInputElement;
+    readonly nextRangeButtonElem: HTMLButtonElement;
     protected _start?: number;
     protected _end?: number;
 
@@ -33,6 +34,8 @@ export class RangeBox {
         this.endBoxElem = this.elem.getElementsByClassName(RangeBox.originalRightBoxClassName)![0] as HTMLInputElement;
         this.endBoxElem.addEventListener("change", () => {this.onEndBoxChange()});
         this.endBoxElem.value = "";
+        this.nextRangeButtonElem = this.elem.querySelector<HTMLButtonElement>(".next-range-btn")!;
+        this.nextRangeButtonElem.addEventListener("click", () => this.moveToNextRange());
     }
 
     /**
@@ -59,6 +62,26 @@ export class RangeBox {
         if (num > RangeBox.wordlistMaxNumber || num < RangeBox.wordlistMinNumber) num = RangeBox.wordlistMaxNumber;
         this.endBoxElem.value = String(num);
         this._end = num;
+    }
+
+    /**
+     * 同じ幅を保って次の範囲へ移動する。末尾を超える場合は変更しない。
+     */
+    protected moveToNextRange(){
+        const start = this.startBoxElem.valueAsNumber;
+        const end = this.endBoxElem.valueAsNumber;
+        const min = RangeBox.wordlistMinNumber;
+        const max = RangeBox.wordlistMaxNumber;
+        if (![start, end, min, max].every(Number.isSafeInteger)) return;
+        if (start < min || start > end || end > max) return;
+
+        const width = end - start + 1;
+        const nextStart = end + 1;
+        const nextEnd = end + width;
+        if (nextEnd > max) return;
+
+        this.start = nextStart;
+        this.end = nextEnd;
     }
 
     get start(){
