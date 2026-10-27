@@ -1,11 +1,9 @@
+import { getUrl } from "@shared/utils.js";
 import { WordRow, WordTable } from "./word.js";
 import { WordlistSelector } from "./wordlist.js";
-import { appUrls } from "./utils.js";
-
 
 class ReadonlyWordTable extends WordTable{
     override registerWordRow(wordRow: WordRow, checkDuplicate?: boolean): void {
-        console.log("aaaaaaa")
         const values = [wordRow.numberElement, wordRow.termElement, wordRow.meaningElement]
         values.forEach(v => { v.classList.toggle(WordRow.editableDivClassName, false) });
         super.registerWordRow(wordRow, checkDuplicate);
@@ -37,5 +35,5 @@ endRangeElement.addEventListener("change", onRangedByNumber);
 
 
 ws.selectorElement.addEventListener("change", () => {
-    location.href = appUrls["vocab:reference"] + `?wordlist=${ws.currentWordlist.id}`
+    location.href = getUrl("vocab:reference") + `?wordlist=${ws.currentWordlist.id}`
 })

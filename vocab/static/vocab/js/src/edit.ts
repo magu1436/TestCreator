@@ -1,6 +1,6 @@
 
-import { appUrls } from "./utils.js";
 import { runPostMethod } from "@shared/server-connect-helper.js";
+import { getUrl } from "@shared/utils.js";
 import {WordRow, WordTable} from "./word.js";
 import {WordlistSelector} from "./wordlist.js"
 import {SelectedModalTable} from "./modal.js";
@@ -81,7 +81,7 @@ export const createNewWordlist = async () => {
     const formData = new FormData();
     formData.append("name", wordlistName);
 
-    const data = await runPostMethod(appUrls["wordbank:create"]!, formData);
+    const data = await runPostMethod(getUrl("wordbank:create"), formData);
     location.href = "?target_word_list=" + data.name;
 }
 
@@ -95,12 +95,12 @@ export const deleteWordlist = async () => {
     }
 
     const data = await runPostMethod(
-        appUrls["wordbank:delete"]!,
+        getUrl("wordbank:delete"),
         JSON.stringify({"id": currentWordlist.id}),
         "delete wordlist failed"
     );
     alert(`「${currentWordlist.name}」を削除しました.`);
-    location.href = appUrls["vocab:editor"]!;
+    location.href = getUrl("vocab:editor");
 }
 
 
@@ -137,7 +137,7 @@ export async function registerWord(){
     formData.append("meaning", addedMeaningElem.value.trim())
     formData.append("wordlist", String(wordlistSelector.currentWordlist.id));
 
-    const data = await runPostMethod(appUrls["vocab:register"]!, formData, "register failed");
+    const data = await runPostMethod(getUrl("vocab:register"), formData, "register failed");
     const newWordRow = new WordRow(
         data.id,
         data.number,
@@ -173,7 +173,7 @@ export const showDeleteWordsModal = () => {
  */
 export const deleteWords = async () => {
     const ids: number[] = wordTable.selectedWords.map(wr => wr.id);
-    const data = await runPostMethod(appUrls["vocab:delete"]!, JSON.stringify({"ids": ids}));
+    const data = await runPostMethod(getUrl("vocab:delete"), JSON.stringify({"ids": ids}));
     wordTable.removeAllSelectedWord();
     alert("選択された単語を削除しました.");
 }

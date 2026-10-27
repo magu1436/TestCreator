@@ -1,6 +1,6 @@
 import { WordlistSelector, Wordlist } from "@vocab/wordlist.js";
 import { runPostMethod } from "@shared/server-connect-helper.js";
-import { appUrls } from "./utils.js";
+import { getUrl } from "@shared/utils.js";
 import { RangeBox, NumberRangeConfigure } from "./configures.js"
 
 
@@ -11,9 +11,8 @@ export const wordlistSelector = new WordlistSelector()
  */
 const setWordlistData = async () => {
     for (const wl of wordlistSelector.wordlists){
-        const data = await runPostMethod(appUrls["wordbank:read"]!, JSON.stringify({id: wl.id}));
+        const data = await runPostMethod(getUrl("wordbank:read"), JSON.stringify({id: wl.id}));
         const nums = data.words.map((w: {"number": number}) => w.number);
-        console.log(nums)
         wl.element.dataset.min = String(Math.min(...nums));
         wl.element.dataset.max = String(Math.max(...nums));
         setInitRange(wordlistSelector.currentWordlist);
@@ -26,8 +25,12 @@ const setWordlistData = async () => {
  */
 const setInitRange = (wordlist: Wordlist) => {
     const ob = RangeBox.originalRangeBox;
-    ob.start = Number(wordlist.element.dataset.min);
-    ob.end = Number(wordlist.element.dataset.max);
+    const minNum = Number(wordlist.element.dataset.min);
+    const maxNum = Number(wordlist.element.dataset.max);
+    RangeBox.wordlistMinNumber = minNum;
+    RangeBox.wordlistMaxNumber = maxNum;
+    ob.start = minNum;
+    ob.end = maxNum;
 }
 
 wordlistSelector.selectorElement.addEventListener("change", async () => {

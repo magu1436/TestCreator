@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -84,12 +85,28 @@ WSGI_APPLICATION = 'TestCreator.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQL_DATABASE', 'testcreator'),
+            'USER': os.environ.get('MYSQL_USER', 'testcreator'),
+            'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+            'HOST': os.environ.get('MYSQL_HOST', 'db'),
+            'PORT': os.environ.get('MYSQL_PORT', '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -137,7 +154,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-load_dotenv()
 API_KEY = os.environ.get("API_KEY")
 
-OUTPUT_PDF_DIR = MEDIA_ROOT + "/exports/"
+if os.environ.get("GAE_ENV", "").startswith("standard") or os.environ.get("K_SERVICE"):
+    # GCP環境
+    OUTPUT_PDF_DIR = Path("/tmp/exports")
+else:
+    # ローカル開発環境
+    OUTPUT_PDF_DIR = BASE_DIR / MEDIA_ROOT / "exports"
+OUTPUT_PDF_DIR.mkdir(parents=True, exist_ok=True)
+
+# ブラウザを閉じた際にログアウトさせる
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

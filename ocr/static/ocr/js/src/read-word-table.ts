@@ -1,6 +1,6 @@
 import { WordRow, WordTable } from "@vocab/word.js";
 import { runPostMethod } from "@shared/server-connect-helper.js";
-import { appUrls } from "./utils.js";
+import { getUrl } from "@shared/utils.js";
 
 let temp_next_id = 0;
 
@@ -39,7 +39,7 @@ export const registerAllWordsToDatabase = async () => {
         fd.append("term", w.term);
         fd.append("meaning", w.meaning);
         fd.append("wordlist", String(table.wordlistId));
-        const data = await runPostMethod(appUrls["vocab:register"]!, fd);
+        const data = await runPostMethod(getUrl("vocab:register"), fd);
         if (data.ok) table.removeWordRow(w);
     }
 }

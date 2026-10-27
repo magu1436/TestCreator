@@ -1,5 +1,5 @@
-import { appUrls } from "./utils.js"
-import { runGetMethod } from "@shared/server-connect-helper.js"
+import { runGetMethod } from "@shared/server-connect-helper.js";
+import { getUrl } from "@shared/utils.js";
 
 
 export class Wordlist {
@@ -74,7 +74,7 @@ export class WordlistSelector{
     }
 
     protected async init(){
-        return await runGetMethod(appUrls["wordbank:all_wordlist"]!, "read all wordlist failed");
+        return await runGetMethod(getUrl("wordbank:all_wordlist"), "read all wordlist failed");
     }
 
     pushWordlist(wordlist: Wordlist, idx: number | null = null){

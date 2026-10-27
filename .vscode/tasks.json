@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DevContainer: TypeScript watch",
+      "type": "process",
+      "command": "bash",
+      "args": ["${workspaceFolder}/.devcontainer/watch.sh"],
+      "windows": {
+        "command": "powershell.exe",
+        "args": ["-NoProfile", "-Command", "Write-Output 'TypeScript watch starts automatically only inside the DevContainer.'"]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch",
+      "runOptions": { "runOn": "folderOpen", "instanceLimit": 1 },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "showReuseMessage": false
+      }
+    }
+  ]
+}

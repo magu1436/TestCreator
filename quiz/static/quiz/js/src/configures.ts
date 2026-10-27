@@ -9,13 +9,17 @@ export class RangeBox {
     protected static _originalRangeBoxDiv: HTMLDivElement | null;
     protected static _originalRangeBox: RangeBox | null;
 
+    static wordlistMinNumber: number;
+    static wordlistMaxNumber: number;
+
     readonly elem: HTMLDivElement;
     readonly startBoxElem: HTMLInputElement;
     readonly endBoxElem: HTMLInputElement;
-    protected _start: number = 0;
-    protected _end: number = Infinity;
+    readonly nextRangeButtonElem: HTMLButtonElement;
+    protected _start?: number;
+    protected _end?: number;
 
-    constructor(){
+    constructor(onNextRange: (box: RangeBox) => void){
         if (!RangeBox._originalRangeBoxDiv){
             RangeBox._originalRangeBoxDiv = document.getElementsByClassName(RangeBox.originalElemClassName)![0] as HTMLDivElement;
             if (!RangeBox) throw new Error(`${RangeBox.originalElemClassName} element have not been found.`);
@@ -26,8 +30,12 @@ export class RangeBox {
         }
         this.startBoxElem = this.elem.getElementsByClassName(RangeBox.originalLeftBoxClassName)![0] as HTMLInputElement;
         this.startBoxElem.addEventListener("change", () => {this.onStartBoxChange()});
+        this.startBoxElem.value = "";
         this.endBoxElem = this.elem.getElementsByClassName(RangeBox.originalRightBoxClassName)![0] as HTMLInputElement;
         this.endBoxElem.addEventListener("change", () => {this.onEndBoxChange()});
+        this.endBoxElem.value = "";
+        this.nextRangeButtonElem = this.elem.querySelector<HTMLButtonElement>(".next-range-btn")!;
+        this.nextRangeButtonElem.addEventListener("click", () => onNextRange(this));
     }
 
     /**
@@ -37,7 +45,9 @@ export class RangeBox {
      */
     protected onStartBoxChange(){
         let num = Number(this.startBoxElem.value);
-        if (Number.isNaN(num)) num = 0;
+        if (Number.isNaN(num)) num = RangeBox.wordlistMinNumber;
+        if (num > RangeBox.wordlistMaxNumber || num < RangeBox.wordlistMinNumber) num = RangeBox.wordlistMinNumber;
+        this.startBoxElem.value = String(num);
         this._start = num;
     }
 
@@ -48,12 +58,14 @@ export class RangeBox {
      */
     protected onEndBoxChange(){
         let num = Number(this.endBoxElem.value);
-        if (Number.isNaN(num)) num = Infinity;
+        if (Number.isNaN(num)) num = RangeBox.wordlistMaxNumber;
+        if (num > RangeBox.wordlistMaxNumber || num < RangeBox.wordlistMinNumber) num = RangeBox.wordlistMaxNumber;
+        this.endBoxElem.value = String(num);
         this._end = num;
     }
 
     get start(){
-        return this._start;
+        return Number(this._start);
     }
 
     set start(s: number){
@@ -62,7 +74,7 @@ export class RangeBox {
     }
 
     get end(){
-        return this._end;
+        return Number(this._end);
     }
 
     set end(e: number){
@@ -77,11 +89,23 @@ export class RangeBox {
 
     /**
      * 保持している `start` と `end` の関係性が正しいかどうか判別するメソッド.  
-     * `start` <= `end` の場合に `true` を返す.  
+     * `start <= end` の場合に `true` を返す.  
      * @returns 正しい範囲を保持しているかどうか
      */
     isCorrectRange(){
-        return this._start <= this._end;
+        if (Number.isNaN(this.start) || Number.isNaN(this.end)) return false;
+        return this.start <= this.end;
+    }
+
+    /**
+     * 自身が保持している開始番号と終了番号が正しい値であるか判定するメソッド.  
+     * 正しい値: 数値  
+     * 不正な値: NaN, undefined, ...  
+     * @returns 正しい値を保持しているかどうか
+     */
+    hasCorrectValues(){
+        if (!Number.isNaN(this.start) && !Number.isNaN(this.end) && this._start && this._end) return true;
+        return false;
     }
 }
 
@@ -103,7 +127,7 @@ export class NumberRangeConfigure {
 
     constructor(){
         if (NumberRangeConfigure._instance) throw new Error("numberRangeConfigure is singleton.");
-        this._boxes = [new RangeBox()];
+        this._boxes = [new RangeBox(box => this.moveToNextRange(box))];
         this.rangeBoxesElem = document.getElementById(NumberRangeConfigure.rangeBoxesId) as HTMLDivElement;
         this.addRangeButtonElem = document.getElementById(NumberRangeConfigure.addRangeButtonId) as HTMLButtonElement;
         this.addRangeButtonElem.addEventListener("click", () => {this.addRangeBox()});
@@ -113,14 +137,50 @@ export class NumberRangeConfigure {
      * 単語番号指定ボックスを追加するメソッド.
      */
     protected addRangeBox(){
-        const newBox = new RangeBox();
+        const newBox = new RangeBox(box => this.moveToNextRange(box));
         this._boxes = [...this._boxes, newBox];
         this.rangeBoxesElem.appendChild(newBox.elem);
+        return newBox;
     }
 
+    /**
+     * 対象の範囲だけを次へ進め、末尾をまたぐ場合は先頭側の範囲を追加する。
+     */
+    protected moveToNextRange(box: RangeBox){
+        const start = box.startBoxElem.valueAsNumber;
+        const end = box.endBoxElem.valueAsNumber;
+        const min = RangeBox.wordlistMinNumber;
+        const max = RangeBox.wordlistMaxNumber;
+        if (![start, end, min, max].every(Number.isSafeInteger)) return;
+        if (start < min || start > end || end > max) return;
+
+        const width = end - start + 1;
+        const nextStart = end === max ? min : end + 1;
+        const remaining = max - nextStart + 1;
+
+        box.start = nextStart;
+        box.end = nextStart + Math.min(width, remaining) - 1;
+        if (width > remaining){
+            const overflowBox = this.addRangeBox();
+            overflowBox.start = min;
+            overflowBox.end = min + (width - remaining) - 1;
+        }
+    }
+
+    /**
+     * 指定された複数の範囲を取得するためのメソッド.  
+     * 数値を入力するinput要素に不正な値(空欄など)が入力されている場合は, その範囲を飛ばした  
+     * 範囲のリストを返す.  
+     * input要素に適切な値が入力されているにも関わらず指定が間違っている場合には, アラートを  
+     * 表示してエラーを投げる.  
+     * @returns 範囲を示す連想配列のリスト
+     */
     getRanges(){
-        const ranges = []
+        const ranges = [];
         for (const box of this._boxes){
+            if (!box.hasCorrectValues()){
+                continue;
+            }
             if (!box.isCorrectRange()){
                 alert("不適切な単語番号指定があります.");
                 throw new Error("incorrect range error");

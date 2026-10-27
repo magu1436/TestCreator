@@ -1,35 +1,26 @@
 
-import datetime
-from pathlib import Path
 from typing import Final
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
-from django.utils import timezone
 from weasyprint import HTML, CSS
 
 
 CSS_NAME: Final[str] = "quiz.css"
-FILE_NAME_FORMAT: Final[str] = "%Y_%m_%d_%H_%M_%S_%f.pdf"
 
 def create_pdf(html: str):
-    """HTMLをPDFに変換して保存する関数.  
+    """HTMLをPDFに変換する関数.  
     
     Args:
         html (str): PDFに変換するHTMLの文字列.
     Return:
-        str: 作成したファイルの名前.
+        bytes: PDFのバイトデータ.
     """
-    file_name = __create_name()
-    HTML(
+    pdf = HTML(
         string=html, 
         base_url=settings.BASE_DIR
     ).write_pdf(
-        Path(settings.OUTPUT_PDF_DIR, file_name),
         stylesheets=[CSS(filename=finders.find("quiz/css/" + CSS_NAME))],
     )
-    return file_name
-
-def __create_name():
-    now = timezone.localtime(timezone.now())
-    return now.strftime(FILE_NAME_FORMAT)
+    if (not(pdf)): raise ValueError("create pdf failed")
+    return pdf
