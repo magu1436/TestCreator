@@ -9,6 +9,9 @@ Cloud Run 固有の設定・公開手順は [Cloud Run へのデプロイ](../de
 docker build -t testcreator:production .
 ```
 
+手元での TypeScript ビルドは不要です。Docker 内の Node.js ステージで `npm ci` → `npm run build`（TypeScript と tsc-alias）を実行し、各アプリと共有モジュールの生成済み JavaScript を Python 実行ステージにコピーしてから `collectstatic` を実行します。
+手元の `node_modules`・`dist`・`tsbuildinfo` はビルド入力に含めません。最終実行イメージに Node.js と `node_modules` は含めません。
+
 依存バージョンは `requirements.txt`、OS依存はルートの `Dockerfile` を参照してください。
 mysqlclientはビルド用ステージでコンパイルし、実行用ステージには接続ライブラリとCAストアを配置します。
 ビルド時の `collectstatic` はDB接続情報なしで実行できます。DB接続不能なdummy backendを使用し、別のDBを作成しません。
