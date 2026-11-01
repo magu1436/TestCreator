@@ -142,6 +142,12 @@ WordTestCreator は Django プロジェクトを中心に、機能ごとにア�
 
 ## セットアップ
 
+### 開発とリリースの流れ
+
+`develop` は未リリースの機能を含む開発ブランチ、`main` は現行リリースを管理するブランチです。作業ブランチから `develop` へ PR を作成し、リリース時に `develop` から `main` へ統合します。
+汎用的な構成は通常の配置で管理し、Cloud Run 固有の設定・スクリプト・ドキュメントは `/deploy/cloud-run/` に配置します。
+検証・PR・公開確認の手順は [リリース手順](docs/releasing.md) を参照してください。
+
 ### 開発環境
 
 DevContainerを使用した環境構築・起動・管理者の作成手順は、[DevContainerでの環境構築](docs/devcontainer.md) を参照してください。

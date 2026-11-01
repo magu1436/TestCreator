@@ -1,6 +1,7 @@
 # 本番環境の構築と実行
 
 このリポジトリから本番用コンテナを構築するための手順です。開発環境は [DevContainerでの環境構築](devcontainer.md) を参照してください。
+ブランチの統合と公開の流れは [リリース手順](releasing.md) を参照してください。
 Cloud Run 固有の設定・公開手順は [Cloud Run へのデプロイ](../deploy/cloud-run/README.md) を参照してください。
 
 ## ビルド
@@ -64,6 +65,13 @@ docker run --rm --name testcreator \
 公開前にはクリーンなチェックアウトから生成したJavaScriptがイメージに含まれることと、各画面のJS／CSS配信を確認してください。
 
 ## DB接続と操作の確認
+
+DB接続が不要な設定・起動処理のテストは、ビルドしたイメージ内で実行できます。
+
+```sh
+docker run --rm --entrypoint python testcreator:production \
+  -m unittest TestCreator.test_database TestCreator.test_settings TestCreator.test_entrypoint
+```
 
 本番データを含まない検証用DBに同じ環境変数とCAを設定して実行します。
 
