@@ -18,7 +18,7 @@ from .database import database_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR / '.env', override=False)
 
 
 # Quick-start development settings - unsuitable for production
@@ -138,7 +138,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-API_KEY = os.environ.get("API_KEY")
+# Prefer the production key name; API_KEY remains a compatibility input.
+API_KEY = os.environ.get("OPENAI_API_KEY", os.environ.get("API_KEY", ""))
 
 OUTPUT_PDF_DIR = Path(os.environ.get("OUTPUT_PDF_DIR", str(Path(MEDIA_ROOT) / "exports")))
 OUTPUT_PDF_DIR.mkdir(parents=True, exist_ok=True)
