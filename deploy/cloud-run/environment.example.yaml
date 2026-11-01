@@ -1,0 +1,14 @@
+# Cloud Run に設定する環境変数の例。実際の秘密情報は含めないこと。
+# PORT は Cloud Run が設定するため記載しない。
+DJANGO_SETTINGS_MODULE: "TestCreator.production"
+DJANGO_DEBUG: "false"
+ALLOWED_HOSTS: "your-service-host.example"
+CSRF_TRUSTED_ORIGINS: "https://your-service-host.example"
+OUTPUT_PDF_DIR: "/tmp/exports"
+DB_BACKEND: "tidb"
+DB_HOST: "your-database-host.example"
+DB_PORT: "4000"
+DB_NAME: "your-database-name"
+DB_USER: "your-database-user"
+DB_SSL_CA: "/run/certs/db-ca.pem"
+# DJANGO_SECRET_KEY、DB_PASSWORD、OPENAI_API_KEY は秘密情報として別途設定する。

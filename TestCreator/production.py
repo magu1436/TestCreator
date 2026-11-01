@@ -18,4 +18,3 @@ STORAGES = {
     # Import maps contain directory URLs, so preserve stable, unhashed paths.
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
-API_KEY = os.environ.get("OPENAI_API_KEY", os.environ.get("API_KEY", ""))

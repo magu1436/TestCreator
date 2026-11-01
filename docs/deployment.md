@@ -1,12 +1,17 @@
 # 本番環境の構築と実行
 
 このリポジトリから本番用コンテナを構築するための手順です。開発環境は [DevContainerでの環境構築](devcontainer.md) を参照してください。
+ブランチの統合と公開の流れは [リリース手順](releasing.md) を参照してください。
+Cloud Run 固有の設定・公開手順は [Cloud Run へのデプロイ](../deploy/cloud-run/README.md) を参照してください。
 
 ## ビルド
 
 ```sh
 docker build -t testcreator:production .
 ```
+
+手元での TypeScript ビルドは不要です。Docker 内の Node.js ステージで `npm ci` → `npm run build`（TypeScript と tsc-alias）を実行し、各アプリと共有モジュールの生成済み JavaScript を Python 実行ステージにコピーしてから `collectstatic` を実行します。
+手元の `node_modules`・`dist`・`tsbuildinfo` はビルド入力に含めません。最終実行イメージに Node.js と `node_modules` は含めません。
 
 依存バージョンは `requirements.txt`、OS依存はルートの `Dockerfile` を参照してください。
 mysqlclientはビルド用ステージでコンパイルし、実行用ステージには接続ライブラリとCAストアを配置します。
@@ -29,6 +34,10 @@ mysqlclientはビルド用ステージでコンパイルし、実行用ステー
 |DJANGO_SUPERUSER_USERNAME / DJANGO_SUPERUSER_PASSWORD|初回管理者を自動作成する場合、両方指定|
 |OPENAI_API_KEY|OCRを使用する場合のAPIキー。API_KEYも入力可能で、両方ある場合はこちらが優先|
 |PORT|HTTP待受ポート。省略時8080|
+|OUTPUT_PDF_DIR|生成PDFの出力先。省略時は media/exports。書き込み可能なディレクトリを指定|
+
+OCRキーは開発・本番ともに `OPENAI_API_KEY` を優先し、未設定の場合だけ `API_KEY` を参照します。空文字で設定されている場合はフォールバックしません。キーの値はログ出力しません。
+ローカルの `.env` はプロジェクトルートから読み込みます。同名の環境変数を上書きせず、APIキーの名前の優先順位は上記の規則に従います。
 
 DB設定はDEBUGと独立しています。必須項目の不足、不正なバックエンド・ポート、存在しないCAはエラーになります。
 TLS指定時はCAとホスト名を検証します。CAを指定しないMySQL接続はTLSなしです。
@@ -56,6 +65,13 @@ docker run --rm --name testcreator \
 公開前にはクリーンなチェックアウトから生成したJavaScriptがイメージに含まれることと、各画面のJS／CSS配信を確認してください。
 
 ## DB接続と操作の確認
+
+DB接続が不要な設定・起動処理のテストは、ビルドしたイメージ内で実行できます。
+
+```sh
+docker run --rm --entrypoint python testcreator:production \
+  -m unittest TestCreator.test_database TestCreator.test_settings TestCreator.test_entrypoint
+```
 
 本番データを含まない検証用DBに同じ環境変数とCAを設定して実行します。
 
