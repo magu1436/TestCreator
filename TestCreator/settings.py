@@ -140,12 +140,7 @@ MEDIA_URL = '/media/'
 
 API_KEY = os.environ.get("API_KEY")
 
-if os.environ.get("GAE_ENV", "").startswith("standard") or os.environ.get("K_SERVICE"):
-    # GCP環境
-    OUTPUT_PDF_DIR = Path("/tmp/exports")
-else:
-    # ローカル開発環境
-    OUTPUT_PDF_DIR = BASE_DIR / MEDIA_ROOT / "exports"
+OUTPUT_PDF_DIR = Path(os.environ.get("OUTPUT_PDF_DIR", str(Path(MEDIA_ROOT) / "exports")))
 OUTPUT_PDF_DIR.mkdir(parents=True, exist_ok=True)
 
 # ブラウザを閉じた際にログアウトさせる

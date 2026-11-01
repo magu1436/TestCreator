@@ -150,6 +150,7 @@ DB設定は `DB_*` 環境変数で指定します。`DEBUG` によるDBの切り
 ### 本番環境
 
 本番イメージのビルド・実行環境の設定・接続確認は、[本番環境の構築と実行](docs/deployment.md) を参照してください。
+Cloud Run 固有の設定・手順は [Cloud Run へのデプロイ](deploy/cloud-run/README.md) にまとめています。
 
 ### OCR 機能を使う場合
 

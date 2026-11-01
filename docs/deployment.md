@@ -1,6 +1,7 @@
 # 本番環境の構築と実行
 
 このリポジトリから本番用コンテナを構築するための手順です。開発環境は [DevContainerでの環境構築](devcontainer.md) を参照してください。
+Cloud Run 固有の設定・公開手順は [Cloud Run へのデプロイ](../deploy/cloud-run/README.md) を参照してください。
 
 ## ビルド
 
@@ -29,6 +30,7 @@ mysqlclientはビルド用ステージでコンパイルし、実行用ステー
 |DJANGO_SUPERUSER_USERNAME / DJANGO_SUPERUSER_PASSWORD|初回管理者を自動作成する場合、両方指定|
 |OPENAI_API_KEY|OCRを使用する場合のAPIキー。API_KEYも入力可能で、両方ある場合はこちらが優先|
 |PORT|HTTP待受ポート。省略時8080|
+|OUTPUT_PDF_DIR|生成PDFの出力先。省略時は media/exports。書き込み可能なディレクトリを指定|
 
 DB設定はDEBUGと独立しています。必須項目の不足、不正なバックエンド・ポート、存在しないCAはエラーになります。
 TLS指定時はCAとホスト名を検証します。CAを指定しないMySQL接続はTLSなしです。
