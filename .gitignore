@@ -4,6 +4,12 @@ __pycache__/
 db.sqlite3
 media/
 .env
+.env.*
+!.env.example
+.test-db.env
+staticfiles/
+# Local database CA certificates (mounted into containers at runtime).
+*.pem
 outputs/*.pdf
 *.log
 temp/
