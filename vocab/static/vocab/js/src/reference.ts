@@ -1,6 +1,7 @@
 import { getUrl } from "@shared/utils.js";
 import { WordRow, WordTable } from "./word.js";
 import { WordlistSelector } from "./wordlist.js";
+import { searchWordTable } from "./search.js";
 
 class ReadonlyWordTable extends WordTable{
     override registerWordRow(wordRow: WordRow, checkDuplicate?: boolean): void {
@@ -20,6 +21,10 @@ const searchBoxElementId = "search_box";
 const startRangeElement = document.getElementById(startRangeElementId) as HTMLInputElement;
 const endRangeElement = document.getElementById(endRangeElementId) as HTMLInputElement;
 const searchBoxElement = document.getElementById(searchBoxElementId) as HTMLInputElement;
+
+document.getElementById("search-button")!.addEventListener("click", () => {
+    searchWordTable(wordTable, searchBoxElement.value);
+});
 
 const onRangedByNumber = () => {
     let start = startRangeElement.valueAsNumber;

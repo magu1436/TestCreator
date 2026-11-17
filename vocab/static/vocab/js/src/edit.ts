@@ -5,6 +5,7 @@ import {WordRow, WordTable} from "./word.js";
 import {WordlistSelector} from "./wordlist.js"
 import {SelectedModalTable} from "./modal.js";
 import {Modal} from "bootstrap";
+import { searchWordTable } from "./search.js";
 
 
 const wordlistSelector = new WordlistSelector();
@@ -36,18 +37,7 @@ const searchBoxElement = document.getElementById(searchBoxElementId) as HTMLInpu
  * 検索ボックスが空の場合は全て表示する.    
  * 選択状態の単語行要素が検索対象外となったとき, 選択状態を解除する.
  */
-const onSearch = () => {
-    const searchWords = searchBoxElement?.value
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .map(w => w.toLowerCase()) ?? [];
-    if (searchWords.length == 0){
-        wordTable.words.forEach(wr => {wr.setVisible(true)});
-        return;
-    };
-    wordTable.setVisibleByKeywords(...searchWords);
-}
+export const onSearch = () => searchWordTable(wordTable, searchBoxElement.value);
 
 /**
  * 単語番号が指定されている場合に, その範囲内の番号の単語のみを表示する.  

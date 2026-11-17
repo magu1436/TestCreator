@@ -1,4 +1,7 @@
-import {registerWord, setRegisterSuccessMessageVisible, showDeleteWordsModal, deleteWords, createNewWordlist, deleteWordlist, onAllWordCheckbox} from "./edit.js";
+import {registerWord, setRegisterSuccessMessageVisible, showDeleteWordsModal, deleteWords, createNewWordlist, deleteWordlist, onAllWordCheckbox, onSearch} from "./edit.js";
+
+// キーワード検索
+document.getElementById("search-button")!.addEventListener("click", onSearch);
 
 // 全選択チェックボックス
 document.getElementById("all-word-checkbox")!.addEventListener(
