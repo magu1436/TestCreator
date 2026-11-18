@@ -24,7 +24,7 @@ class APICostLog(models.Model):
     )
     created_at = models.DateTimeField(
         verbose_name="リクエスト日時",
-        auto_now=True,
+        auto_now_add=True,
     )
 
     class Meta:
@@ -32,3 +32,18 @@ class APICostLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.created_at} log"
+
+
+class OCRDailyUsage(models.Model):
+    """OCRの1日あたりの利用回数(全利用者の合計)。日付ごとに1行。"""
+    date = models.DateField(
+        verbose_name="日付",
+        unique=True,
+    )
+    count = models.PositiveIntegerField(
+        verbose_name="利用回数",
+        default=0,
+    )
+
+    def __str__(self):
+        return f"{self.date}: {self.count}"

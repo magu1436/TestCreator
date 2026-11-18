@@ -136,7 +136,7 @@ class DemoWorkflowTests(TestCase):
         self.assertEqual(updated_word.latest_edited_by, user)
         self.assertEqual((updated_word.number, updated_word.term, updated_word.meaning), (1, 'Apple', '林檎'))
         self.assertEqual(post('wordbank:read', {'id': wordlist_id}, encoded=True).json()['words'][0]['meaning'], '林檎')
-        # 外部API応答だけを置換し、抽出・費用計算・フォーム・保存は実処理を通す。
+        # 外部API応答だけを置換し、利用枠(デモ既定10回/日)・抽出・費用計算・フォーム・保存は実処理を通す。
         completion = SimpleNamespace(id='test-request', model='gpt-4o-mini',
             usage=SimpleNamespace(prompt_tokens=100, completion_tokens=50),
             choices=[SimpleNamespace(message=SimpleNamespace(content='{"book":{"number":2,"meaning":"本"}}'))])
@@ -144,8 +144,9 @@ class DemoWorkflowTests(TestCase):
             response = post('ocr:ocr', {'files': SimpleUploadedFile('sample.jpg', b'test-image', content_type='image/jpeg')})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(APICostLog.objects.get(request_id='test-request').user, user)
-        self.assertGreater(APICostLog.objects.get().estimated_cost, 0)
-        # 費用のUI戻り値の既存不整合は#33で扱う。
+        saved_cost = APICostLog.objects.get().estimated_cost
+        self.assertGreater(saved_cost, 0)
+        self.assertEqual(response.json()['cost'], saved_cost)
         extracted = response.json()['words'][0]
         registered = post('vocab:register', extracted | {'wordlist': wordlist_id})
         self.assertEqual(registered.status_code, 201)

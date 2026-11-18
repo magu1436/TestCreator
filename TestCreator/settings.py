@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import sys
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 from .database import database_config
 
@@ -34,6 +35,26 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
 DEMO_USERNAME = os.environ.get('DEMO_USERNAME', 'demo')
 DEMO_PASSWORD = os.environ.get('DEMO_PASSWORD', '')
+
+
+def parse_ocr_daily_limit(raw):
+    """OCR_DAILY_LIMITを解釈する。未設定・空はNone(既定値を使う)、不正値は起動時に拒否する。
+
+    有効値は-1以上の整数(-1は無制限、0はOCR停止、正の整数は1日あたりの上限回数)。
+    """
+    if raw is None or raw.strip() == '':
+        return None
+    try:
+        value = int(raw)  # 前後の空白は int() が無視する。
+    except ValueError:
+        value = None
+    if value is None or value < -1:
+        raise ImproperlyConfigured('OCR_DAILY_LIMITには-1以上の整数を指定してください。')
+    return value
+
+
+# OCRの1日あたりの利用上限(全利用者の合計)。Noneは既定値(デモ時10回、通常時は無制限)を意味する。
+OCR_DAILY_LIMIT = parse_ocr_daily_limit(os.environ.get('OCR_DAILY_LIMIT'))
 
 ALLOWED_HOSTS = []
 
@@ -156,3 +177,20 @@ OUTPUT_PDF_DIR.mkdir(parents=True, exist_ok=True)
 
 # ブラウザを閉じた際にログアウトさせる
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# OCRの利用枠・失敗をCloud Runの標準ログ(標準出力)で確認できるよう、ocrアプリのINFO以上を出力する。
+# Django既定のロガー設定は維持する。
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        # Cloud Runは標準出力のテキストにレベルを付けないため、本文にレベルとロガー名を含める。
+        'plain': {'format': '%(levelname)s %(name)s: %(message)s'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'stream': 'ext://sys.stdout', 'formatter': 'plain'},
+    },
+    'loggers': {
+        'ocr': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}
