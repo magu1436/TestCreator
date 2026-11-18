@@ -1,15 +1,21 @@
 import datetime
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test import SimpleTestCase, TestCase, TransactionTestCase, override_settings
+from django.urls import reverse
 
 from TestCreator.settings import parse_ocr_daily_limit
 
-from .models import OCRDailyUsage
+from accounts.models import AdminUser
+
+from .forms import APICostLogForm
+from .models import APICostLog, OCRDailyUsage
 from .quota import get_daily_limit, reserve_ocr_slot
 
 LOCALDATE = "ocr.quota.timezone.localdate"
@@ -132,3 +138,118 @@ class ReserveOcrSlotConcurrencyTests(TransactionTestCase):
         self.assertEqual(sum(allowed), self.LIMIT)
         usage = OCRDailyUsage.objects.get()
         self.assertEqual(usage.count, self.LIMIT)
+
+
+CREATE = "openai.resources.chat.completions.Completions.create"
+
+
+def _completion():
+    """OpenAIの応答を模した最小のオブジェクト。"""
+    return SimpleNamespace(
+        id="test-request",
+        model="gpt-4o-mini",
+        usage=SimpleNamespace(prompt_tokens=100, completion_tokens=50),
+        choices=[SimpleNamespace(message=SimpleNamespace(content='{"book":{"number":2,"meaning":"本"}}'))],
+    )
+
+
+@override_settings(API_KEY="test-only-api-key")
+class OcrViewTests(TestCase):
+    """OcrViewの利用枠・成功・失敗時の応答を、OpenAI呼び出しだけを置換して確認する。"""
+
+    def setUp(self):
+        self.user = AdminUser.objects.create_user("ocr-user", "password")
+        self.client.force_login(self.user)
+
+    def post(self, with_file=True):
+        data = {"files": SimpleUploadedFile("sample.jpg", b"test-image", content_type="image/jpeg")} if with_file else {}
+        return self.client.post(reverse("ocr:ocr"), data)
+
+    @override_settings(OCR_DAILY_LIMIT=5, DEMO_MODE=True)
+    def test_success_returns_cost_and_consumes_slot(self):
+        with patch(CREATE, return_value=_completion()):
+            response = self.post()
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        log = APICostLog.objects.get()
+        self.assertGreater(body["cost"], 0)
+        self.assertEqual(body["cost"], log.estimated_cost)
+        self.assertEqual(body["errors"], [])
+        self.assertEqual(body["words"], [{"term": "book", "number": 2, "meaning": "本"}])
+        self.assertEqual(log.user, self.user)
+        self.assertEqual(OCRDailyUsage.objects.get().count, 1)
+
+    @override_settings(OCR_DAILY_LIMIT=1, DEMO_MODE=True)
+    def test_demo_limit_reached_refuses_without_calling_api(self):
+        with patch(CREATE, return_value=_completion()) as create:
+            self.assertEqual(self.post().status_code, 200)
+            create.reset_mock()
+            response = self.post()
+            create.assert_not_called()
+        self.assertEqual(response.status_code, 429)
+        self.assertIn("本日のデモOCR利用上限（1回）に達しました", response.json()["err"])
+        self.assertEqual(OCRDailyUsage.objects.get().count, 1)
+        self.assertEqual(APICostLog.objects.count(), 1)
+
+    @override_settings(OCR_DAILY_LIMIT=1, DEMO_MODE=False)
+    def test_normal_limit_reached_message_has_no_demo_wording(self):
+        with patch(CREATE, return_value=_completion()) as create:
+            self.post()
+            create.reset_mock()
+            response = self.post()
+            create.assert_not_called()
+        self.assertEqual(response.status_code, 429)
+        err = response.json()["err"]
+        self.assertIn("本日のOCR利用上限（1回）に達しました", err)
+        self.assertNotIn("デモ", err)
+
+    @override_settings(OCR_DAILY_LIMIT=0, DEMO_MODE=True)
+    def test_zero_limit_means_stopped(self):
+        with patch(CREATE, return_value=_completion()) as create:
+            response = self.post()
+            create.assert_not_called()
+        self.assertEqual(response.status_code, 429)
+        self.assertIn("停止", response.json()["err"])
+        self.assertEqual(OCRDailyUsage.objects.count(), 0)
+
+    @override_settings(OCR_DAILY_LIMIT=3, DEMO_MODE=False)
+    def test_api_failure_returns_502_and_still_consumes_slot(self):
+        with patch(CREATE, side_effect=RuntimeError("boom")):
+            with self.assertLogs("ocr.views", level="ERROR"):
+                response = self.post()
+        self.assertEqual(response.status_code, 502)
+        self.assertIn("OCRに失敗しました", response.json()["err"])
+        self.assertEqual(OCRDailyUsage.objects.get().count, 1)
+        self.assertEqual(APICostLog.objects.count(), 0)
+
+    @override_settings(OCR_DAILY_LIMIT=3, DEMO_MODE=False)
+    def test_invalid_cost_log_does_not_fail_request(self):
+        class InvalidForm(APICostLogForm):
+            def is_valid(self):
+                self.add_error(None, "invalid for test")
+                return False
+
+        with patch(CREATE, return_value=_completion()), patch("ocr.views.APICostLogForm", InvalidForm):
+            with self.assertLogs("ocr.views", level="WARNING") as logs:
+                response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["words"]), 1)
+        self.assertIn("invalid for test", logs.output[0])
+        self.assertEqual(APICostLog.objects.count(), 0)
+
+    @override_settings(OCR_DAILY_LIMIT=3, DEMO_MODE=True)
+    def test_missing_file_is_rejected_before_reserving(self):
+        with patch(CREATE, return_value=_completion()) as create:
+            response = self.post(with_file=False)
+            create.assert_not_called()
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("err", response.json())
+        self.assertEqual(OCRDailyUsage.objects.count(), 0)
+
+    @override_settings(OCR_DAILY_LIMIT=-1, DEMO_MODE=False)
+    def test_unlimited_works_without_usage_rows(self):
+        with patch(CREATE, return_value=_completion()):
+            self.assertEqual(self.post().status_code, 200)
+            self.assertEqual(self.post().status_code, 200)
+        self.assertEqual(OCRDailyUsage.objects.count(), 0)
+        self.assertEqual(APICostLog.objects.count(), 2)

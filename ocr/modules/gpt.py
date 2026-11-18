@@ -2,6 +2,7 @@
 from abc import ABC
 import base64
 import json
+import logging
 from typing import TypedDict
 
 from django.conf import settings
@@ -9,7 +10,7 @@ from django.core.files.uploadedfile import UploadedFile
 from openai import OpenAI
 from openai.types import CompletionUsage
 
-from ocr.models import APICostLog
+logger = logging.getLogger(__name__)
 
 RATE = 146.85
 
@@ -19,10 +20,10 @@ class Word(TypedDict):
     meaning: str
 
 class RequestResult(TypedDict):
-    words: list[Word]
-    request_id: str
-    estimated_cost: float
-    api_model: str
+    words: list[Word] | None
+    request_id: str | None
+    estimated_cost: float | None
+    api_model: str | None
     errors: list[Exception]
 
 class GPTModel(ABC):
@@ -40,10 +41,16 @@ class GPTModel(ABC):
         self.output_price = output_price
     
     def request(self, file: UploadedFile) -> RequestResult:
-        client = OpenAI(api_key=settings.API_KEY)
-        result: RequestResult = {"words": None, "cost": None, "errors": []}
-        print("start ocr.........")
+        result: RequestResult = {
+            "words": None,
+            "estimated_cost": None,
+            "request_id": None,
+            "api_model": None,
+            "errors": [],
+        }
+        logger.debug("OCRリクエストを開始します: model=%s", self.model)
         try:
+            client = OpenAI(api_key=settings.API_KEY)
             res = client.chat.completions.create(
                 model=self.model,
                 messages=[
@@ -66,14 +73,14 @@ class GPTModel(ABC):
                 response_format={"type": "json_object"},
                 temperature=0.,
             )
-            print(res)
+            logger.debug("OCRレスポンスを受信しました: id=%s", res.id)
             result["words"] = self.__to_word_dict_list(res.choices[0].message.content)
             result["estimated_cost"] = self.__calc_balance(res.usage)
             result["request_id"] = res.id
             result["api_model"] = res.model
         except Exception as e:
             result["errors"].append(e)
-        print(".........end ocr")
+        logger.debug("OCRリクエストを終了しました: errors=%d", len(result["errors"]))
         return result
 
 

@@ -22,23 +22,26 @@ const onSubmit = async () => {
     const increaseProgress = () => {
         progressbar.increase(Math.round(1 / proceedFilesAmount * 100));
     }
-    for (const f of dropzone.droppedFiles){
-        const fd = new FormData();
-        fd.append("files", f.file);
-        const data = await runPostMethod(getUrl("ocr:ocr"), fd);
-        console.log(data.message);
-        data.words.forEach((w: { number: number; term: string; meaning: string; }) => {
-            const wr = new ResultWordRow(w.number, w.term, w.meaning);
-            table.registerWordRow(wr);
-        })
-        dropzone.removeImageFile(f);
-        increaseProgress();
+    try {
+        // エラー(利用上限など)が起きたら残りのファイルは処理せず、追加済みの行は残す。
+        for (const f of dropzone.droppedFiles){
+            const fd = new FormData();
+            fd.append("files", f.file);
+            const data = await runPostMethod(getUrl("ocr:ocr"), fd);
+            console.log(data.message);
+            data.words.forEach((w: { number: number; term: string; meaning: string; }) => {
+                const wr = new ResultWordRow(w.number, w.term, w.meaning);
+                table.registerWordRow(wr);
+            })
+            dropzone.removeImageFile(f);
+            increaseProgress();
+        }
+    } finally {
+        submitBtn.textContent = "アップロード開始"
+        submitBtn.disabled = false;
+        progressbar.percent = 0;
+        progressbar.toggleVisible(false);
     }
-
-    submitBtn.textContent = "アップロード開始"
-    submitBtn.disabled = false;
-    progressbar.percent = 0;
-    progressbar.toggleVisible(false);
 }
 
 const table = ResultWordTable.instance;
