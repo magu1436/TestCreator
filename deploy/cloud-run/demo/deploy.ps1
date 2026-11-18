@@ -45,12 +45,53 @@ function Invoke-Gcloud([string[]]$Arguments) {
 }
 $common = @("--project=$project", "--region=$region", '--quiet')
 $null = Invoke-Gcloud (@('run', 'deploy', $service, "--image=$Image", "--service-account=$ServiceAccount",
-    '--no-allow-unauthenticated', '--invoker-iam-check', '--min=0', '--max=1', '--cpu=2', '--memory=2Gi', '--concurrency=1', '--timeout=120',
+    '--no-allow-unauthenticated', '--invoker-iam-check', '--ingress=internal', '--min=0', '--max=1', '--cpu=2', '--memory=2Gi', '--concurrency=1', '--timeout=120',
     "--env-vars-file=$environment", "--set-secrets=DJANGO_SECRET_KEY=$DjangoSecret,DEMO_PASSWORD=$DemoPasswordSecret,OPENAI_API_KEY=$OpenAiSecret") + $common)
-$url = (Invoke-Gcloud (@('run', 'services', 'describe', $service, '--format=value(status.url)') + $common) | Out-String).Trim()
+function Get-PublicBindings {
+    $raw = Invoke-Gcloud (@('run', 'services', 'get-iam-policy', $service, '--format=json') + $common)
+    $policy = ($raw | Out-String) | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+    if ($policy -isnot [System.Collections.IDictionary]) { throw 'IAMポリシーがJSONオブジェクトではありません。ingressはinternalのまま停止します。' }
+    if (-not $policy.Contains('bindings')) { return }
+    if ($policy.bindings -isnot [array]) { throw 'IAM bindingsが配列ではありません。' }
+    foreach ($binding in $policy.bindings) {
+        if ($binding -isnot [System.Collections.IDictionary] -or
+            $binding.role -isnot [string] -or $binding.role -notmatch '^roles/[A-Za-z0-9.]+$' -or
+            $binding.members -isnot [array] -or @($binding.members | Where-Object { $_ -isnot [string] }).Count -gt 0) {
+            throw 'IAM bindingの形式を検証できません。ingressはinternalのまま停止します。'
+        }
+        foreach ($member in $binding.members) {
+            # Invokerを含む任意ロールの公開principalを除去する。条件付きは自動変更せず停止する。
+            if ($member -in @('allUsers', 'allAuthenticatedUsers')) {
+                if ($binding.Contains('condition')) { throw '条件付き公開IAMがあります。手動で確認・除去後に再実行してください。' }
+                [pscustomobject]@{ Role = $binding.role; Member = $member }
+            }
+        }
+    }
+}
+# deployはIAM変更失敗を警告だけで終了する場合があるため、別コマンドと再読込で確認する。
+$publicBindings = @(Get-PublicBindings)
+foreach ($binding in $publicBindings) {
+    $null = Invoke-Gcloud (@('run', 'services', 'remove-iam-policy-binding', $service,
+        "--member=$($binding.Member)", "--role=$($binding.Role)", '--condition=None') + $common)
+}
+if (@(Get-PublicBindings).Count -ne 0) { throw '公開IAMが残っています。ingressはinternalのまま停止します。' }
+$description = (Invoke-Gcloud (@('run', 'services', 'describe', $service, '--format=json') + $common) | Out-String) | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+if ($description -isnot [System.Collections.IDictionary] -or $description.metadata -isnot [System.Collections.IDictionary] -or
+    $description.status -isnot [System.Collections.IDictionary]) { throw 'サービス状態を検証できません。' }
+if ($description.metadata.Contains('annotations')) {
+    $annotations = $description.metadata.annotations
+    if ($annotations -isnot [System.Collections.IDictionary]) { throw 'サービスannotationsが不正です。' }
+    if ($annotations.Contains('run.googleapis.com/invoker-iam-disabled') -and
+        ($annotations['run.googleapis.com/invoker-iam-disabled'] -isnot [string] -or
+         $annotations['run.googleapis.com/invoker-iam-disabled'] -cne 'false')) {
+        throw 'Invoker IAMチェックが有効であることを確認できません。ingressはinternalのまま停止します。'
+    }
+}
+$url = $description.status.url
+if ($url -isnot [string]) { throw 'サービスURLが文字列ではありません。' }
 if ($url -cnotmatch '^https://wordtest-demo-[a-z0-9-]+\.(?:a\.|asia-northeast1\.)?run\.app$') { throw 'Cloud Runから期待するデモサービスのHTTPS URLを取得できませんでした。非公開のまま停止します。' }
 $hostname = ([uri]$url).Host
 $null = Invoke-Gcloud (@('run', 'services', 'update', $service,
-    "--update-env-vars=ALLOWED_HOSTS=$hostname,CSRF_TRUSTED_ORIGINS=$url") + $common)
+    '--ingress=all', "--update-env-vars=ALLOWED_HOSTS=$hostname,CSRF_TRUSTED_ORIGINS=$url") + $common)
 Write-Output "非公開デプロイ完了: $url"
 Write-Output '匿名公開は許可していません。再実行時も非公開に戻します。'

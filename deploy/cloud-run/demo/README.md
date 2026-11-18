@@ -4,7 +4,7 @@
 
 ## 設定と前提
 
-PowerShell 7、認証済みGoogle Cloud CLI、Artifact Registryへのビルド・配布権限が必要です。実行者にはCloud Run更新権限とデモ専用SAへの `iam.serviceAccounts.actAs` が必要です。Secret作成・IAM設定は権限を持つ担当者が下記の対象単位で実施します。スクリプトはIAMやSecretの作成を行いません。
+PowerShell 7、認証済みGoogle Cloud CLI、Artifact Registryへのビルド・配布権限が必要です。実行者にはCloud Run更新権限、対象サービスの `run.services.getIamPolicy` / `run.services.setIamPolicy`、デモ専用SAへの `iam.serviceAccounts.actAs` が必要です。Secret作成・IAM設定は権限を持つ担当者が下記の対象単位で実施します。スクリプトはSAやSecretを作成せず、対象サービスの公開IAM削除だけを行います。
 
 `environment.example.yaml` はこのデモスクリプトがそのまま使用する非秘密設定です。通常環境向けの親ディレクトリのexampleとは扱いが異なります。秘密値と `DB_*` は書き込まないでください。
 
@@ -76,9 +76,13 @@ $parameters = @{
 ./deploy/cloud-run/demo/deploy.ps1 @parameters
 ```
 
-値と数値バージョンを実在するものへ置換してから実行してください。`-WhatIf` は入力を検証し、gcloudの探索・呼び出しを一切行いません。通常実行では確認後、非公開デプロイ → `status.url` 取得 → そのホストだけを `ALLOWED_HOSTS`、そのHTTPSオリジンだけを `CSRF_TRUSTED_ORIGINS` へ反映します。最初のリビジョンは `bootstrap.invalid` を設定して起動し、実URLを推測しません。更新は既存のデモ環境変数を保持します。旧形式・新形式のCloud Run URLに対応します。
+値と数値バージョンを実在するものへ置換してから実行してください。`-WhatIf` は入力を検証し、gcloudの探索・呼び出しを一切行いません。通常実行では確認後、`ingress=internal` とInvoker IAMチェック有効でデプロイし、外部からの到達を制限します。`--no-allow-unauthenticated` はIAM削除失敗を警告だけで終える場合があるため、終了コード0だけでは非公開と判断しません。
 
-各gcloudの非ゼロ終了時には後続処理を停止します。失敗時は公開せず、設定を確認して再実行してください。スクリプトは実行するたびにInvoker IAMチェックを有効化し、匿名呼び出しを外して **非公開に戻します**。組織/IAM設定で他に広い呼び出し権限がないことも確認します。Windowsの `gcloud.cmd` に引数配列を渡し、Invoke-Expressionは使用しません。
+サービスIAMをJSONで読み、`allUsers` / `allAuthenticatedUsers` を含む無条件bindingをロールごとに独立した削除コマンドで除去します。条件付きの公開bindingは自動変更せず停止します。再取得で公開bindingが残っていないことを確認し、サービスJSONでInvoker IAMチェックが有効（無効化annotationが未設定または文字列 `false`）であることと `status.url` を検証します。最後にそのホストだけを `ALLOWED_HOSTS`、そのHTTPSオリジンだけを `CSRF_TRUSTED_ORIGINS` へ反映し、`ingress=all` に戻します。この時点でも呼び出しにはIAM認証が必要です。
+
+最初のリビジョンは `bootstrap.invalid` を設定して起動し、実URLを推測しません。更新は既存のデモ環境変数を保持します。旧形式・新形式のCloud Run URLに対応します。
+
+各gcloudの非ゼロ終了時には後続処理を停止します。IAMの読込・JSON形式・除去・残存確認やサービス状態の検証に失敗した場合は、`ingress=internal` のまま停止し、完了とは表示しません。最後の更新自体に失敗した場合は実際の状態を確認してください。失敗時は匿名公開せず、設定を確認して再実行してください。スクリプトは実行するたびにInvoker IAMチェックを有効化し、公開principalを外して **非公開に戻します**。実行中の並行IAM変更は避け、プロジェクトから継承した権限などサービスIAM以外に広い呼び出し権限がないことも確認します。Windowsの `gcloud.cmd` に引数配列を渡し、Invoke-Expressionは使用しません。
 
 ## 4. 公開は別操作（Issue #33完了後）
 
@@ -106,6 +110,6 @@ PowerShell 7で実行します。Windowsのネイティブ引数テストはNode
 pwsh -NoProfile -File deploy/cloud-run/demo/deploy.Tests.ps1
 ```
 
-WhatIfの無呼び出し、対象固定、入力拒否、実URLの反映、リソース/Secret引数、各段階の失敗停止と、Windows `.cmd` 経由の空白付きパス・カンマを検証します。
+WhatIfの無呼び出し、対象固定、入力拒否、実URLの反映、リソース/Secret引数、各段階の失敗停止、deploy成功後の公開IAM残存・除去失敗・不正JSON・条件付きbindingでの停止、Invoker IAMチェック状態の検証と、Windows `.cmd` 経由の空白付きパス・カンマを検証します。
 
 公式仕様: [Cloud Run HTTPS URL](https://docs.cloud.google.com/run/docs/triggering/https-request)、[gcloud run deploy](https://docs.cloud.google.com/sdk/gcloud/reference/run/deploy)、[Secret設定](https://docs.cloud.google.com/run/docs/configuring/services/secrets)。
