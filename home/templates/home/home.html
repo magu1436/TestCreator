@@ -12,6 +12,8 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     </head>
     <body>
+        {% include 'includes/demo_notice.html' %}
+        {% include 'includes/demo_credentials.html' %}
         <div class="container-fluid vh-100 d-flex flex-column justify-content-evenly align-items-center">
 
             <div class="d-flex flex-row justify-content-between mt-5 mb-4 h-25">
@@ -44,7 +46,7 @@
                 <a href="{% url 'vocab:editor' %}" class="btn btn-secondary btn-lg btn-column w-50 flex-fill text-center d-flex align-items-center justify-content-center">
                     単語帳編集
                 </a>
-                {% if user.is_superuser %}
+                {% if user.is_superuser and not demo_mode %}
                 <a href="./admin" class="btn btn-secondary btn-lg btn-column w-50 flex-fill text-center d-flex align-items-center justify-content-center">
                     Django 管理サイト
                 </a>
