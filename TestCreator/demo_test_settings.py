@@ -15,4 +15,7 @@ DEMO_MODE = True
 DEMO_USERNAME = "demo"
 DEMO_PASSWORD = "test-demo-password"
 # 並行実行テスト(スレッド)がメモリDBのテーブルロックに当たらないよう、テストDBは一時ファイルにする。
-DATABASES["default"]["TEST"] = {"NAME": os.path.join(tempfile.gettempdir(), "testcreator_demo_test.sqlite3")}
+# 同時に走る別のテスト実行とファイルを共有しないよう、プロセスIDを名前に含める。
+DATABASES["default"]["TEST"] = {
+    "NAME": os.path.join(tempfile.gettempdir(), f"testcreator_demo_test_{os.getpid()}.sqlite3"),
+}

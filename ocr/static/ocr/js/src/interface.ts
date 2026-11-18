@@ -28,6 +28,8 @@ const onSubmit = async () => {
             const fd = new FormData();
             fd.append("files", f.file);
             const data = await runPostMethod(getUrl("ocr:ocr"), fd);
+            // 通信失敗時は共通処理が通知済みでundefinedを返すため、ここで処理を打ち切る。
+            if (!data) break;
             console.log(data.message);
             data.words.forEach((w: { number: number; term: string; meaning: string; }) => {
                 const wr = new ResultWordRow(w.number, w.term, w.meaning);

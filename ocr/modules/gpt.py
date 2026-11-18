@@ -74,10 +74,11 @@ class GPTModel(ABC):
                 temperature=0.,
             )
             logger.debug("OCRレスポンスを受信しました: id=%s", res.id)
-            result["words"] = self.__to_word_dict_list(res.choices[0].message.content)
+            # 課金済みの呼び出しは、応答の解析に失敗しても費用を記録できるよう先に控える。
             result["estimated_cost"] = self.__calc_balance(res.usage)
             result["request_id"] = res.id
             result["api_model"] = res.model
+            result["words"] = self.__to_word_dict_list(res.choices[0].message.content)
         except Exception as e:
             result["errors"].append(e)
         logger.debug("OCRリクエストを終了しました: errors=%d", len(result["errors"]))

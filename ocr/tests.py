@@ -253,3 +253,32 @@ class OcrViewTests(TestCase):
             self.assertEqual(self.post().status_code, 200)
         self.assertEqual(OCRDailyUsage.objects.count(), 0)
         self.assertEqual(APICostLog.objects.count(), 2)
+
+    @override_settings(OCR_DAILY_LIMIT=3, DEMO_MODE=True)
+    def test_anonymous_user_cannot_consume_quota(self):
+        self.client.logout()
+        with patch(CREATE, return_value=_completion()) as create:
+            response = self.post()
+            create.assert_not_called()
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(OCRDailyUsage.objects.count(), 0)
+
+    @override_settings(OCR_DAILY_LIMIT=3, DEMO_MODE=True, API_KEY="")
+    def test_missing_api_key_does_not_consume_quota(self):
+        with patch(CREATE, return_value=_completion()) as create:
+            with self.assertLogs("ocr.views", level="ERROR"):
+                response = self.post()
+            create.assert_not_called()
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(OCRDailyUsage.objects.count(), 0)
+
+    @override_settings(OCR_DAILY_LIMIT=3, DEMO_MODE=False)
+    def test_unparsable_response_still_records_cost(self):
+        completion = _completion()
+        completion.choices[0].message.content = "not json"
+        with patch(CREATE, return_value=completion):
+            with self.assertLogs("ocr.views", level="ERROR"):
+                response = self.post()
+        self.assertEqual(response.status_code, 502)
+        self.assertGreater(APICostLog.objects.get(request_id="test-request").estimated_cost, 0)
+        self.assertEqual(OCRDailyUsage.objects.get().count, 1)
