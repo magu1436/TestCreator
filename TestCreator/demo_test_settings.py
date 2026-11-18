@@ -10,5 +10,7 @@ DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memor
 ALLOWED_HOSTS = ["testserver", "localhost"]
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 DEMO_MODE = True
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app != 'demo.apps.DemoConfig']
+INSTALLED_APPS.append('demo.apps.DemoConfig')
 DEMO_USERNAME = "demo"
 DEMO_PASSWORD = "test-demo-password"
