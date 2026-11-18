@@ -34,7 +34,9 @@ DB不要の `collectstatic` はSQLiteと共有資格情報の検証だけを除�
 
 旧 `home.DemoInitialization` を使う未公開版のデモDBは、データ移行せず一時DBを作り直して確認します。旧DBの編集内容は引き継ぎません。通常環境の既存DBに対する専用テーブルの自動削除や、マイグレーションの巻き戻しは行いません。
 
-`seed_demo` は既存 `scripts/seed_words.py` の50語を暫定サンプルとして利用します。投入と完了記録を同一トランザクションで保存し、同じDBで再実行しても重複作成せず、利用者が編集・削除した単語や単語帳を復元しません。公開向けの内容整備と適合性確認は[Issue #30](https://github.com/magu1436/TestCreator/issues/30)の残作業です。既存の開発用seedスクリプトの実行方法・挙動は変更していません。
+`seed_demo` は公開デモ専用の [`demo/data/samples.json`](../demo/data/samples.json) から「デモ英単語50」（1〜50番）と「デモ古文単語20」（1〜20番）の2冊70語を投入します。一般的な語彙を選び、語義はこのデモのために短く自作しています。[原稿の由来と公開方針](../demo/data/README.md)も参照してください。実利用者のデータやOCR履歴、本番DBには依存しません。既存の開発用 `scripts/seed_words.py` は変更していません。
+
+投入と完了記録 `initial-samples` を同一トランザクションで保存します。同じDBで再実行しても重複作成せず、利用者の編集・削除を維持します。単語帳と単語を全削除した場合も復元しません。原稿を変更しただけでは、投入済みDBは更新されません。2冊目の投入途中で失敗した場合は、1冊目と完了記録もロールバックします。空の新しいSQLiteへマイグレーションと初期化を実行した場合は、2冊70語の初期状態を再生成します。
 
 単語のCRUD、セッション、`APICostLog` は同じSQLiteに保存します。共有ユーザーのため、利用者ごとのデータ分離や単語数制限は設けません。コンテナの再作成でSQLiteが失われると、セッション・編集・ログも失われ、次回起動時に初期データへ戻ります。独立したインスタンスやリビジョン間でDBを共有しません。最大インスタンス数を1にしても、リビジョン切替等を含めた単一状態は保証できません。定期リセットも保証しません。公開先への設定反映はIssue #31、実環境の再初期化確認はIssue #34で扱います。
 
@@ -43,3 +45,31 @@ DB不要の `collectstatic` はSQLiteと共有資格情報の検証だけを除�
 `python manage.py test --settings=TestCreator.demo_test_settings --noinput` はテスト専用の一時SQLiteとテスト内ユーザーを利用します。ファイルDBの初期化テストは独立した一時ファイルでマイグレーション・ユーザー作成・サンプル投入を実行し、同じファイルでの再実行と別ファイルへの初期化を確認します。
 
 統合テストはCSRF検証を有効にして通常ログイン、単語帳・単語操作、OCR、プレビュー、実WeasyPrintによる日本語PDFを確認します。OCRは外部API応答境界だけを置換するため実API料金は発生しません。既存のOCR戻り値 `cost=None` と保存する `estimated_cost` の不整合はIssue #33で扱います。公開環境の実OCRや再初期化の確認はIssue #34の範囲です。
+
+日本語フォントとPDF用ネイティブライブラリを含むリポジトリのDockerfileで、以下のように検証できます。リポジトリのルートで実行してください。本番のDB設定・資格情報・APIキーは不要です。指定したダミー値はプロセス環境変数として `.env` より優先します。
+
+```sh
+docker build -t testcreator:demo-verification .
+docker run --rm --env OPENAI_API_KEY=test-only --env DEMO_MODE=true \
+  --env DEMO_PASSWORD=test-demo-password testcreator:demo-verification \
+  python manage.py test --settings=TestCreator.demo_test_settings --noinput
+```
+
+同一ファイル維持と新しい空ファイルへの復元だけを確認する場合は、末尾のテストコマンドを次に置き換えます。
+
+```sh
+python manage.py test TestCreator.test_demo_initialization.DemoFileDatabaseTests \
+  --settings=TestCreator.demo_test_settings --noinput
+```
+
+このテストは一時ディレクトリ内の `first.sqlite3` で `migrate` → `initialize_runtime` を実行し、70語から1語編集・1語削除後に再初期化して69語と編集内容が維持されることを確認します。次に別の空の `second.sqlite3` で2冊70語が再生成され、セッションとOCRログが空であることを確認します。テスト終了時に一時ファイルを片付け、既存DBは削除しません。実インスタンスの定期リセットやCloud Run再生成の保証ではありません。
+
+## サンプルで体験する
+
+ログイン後、2冊の切替と単語の編集・追加・削除を試せます。出題設定では英語帳の範囲1〜10番から11〜20番へ移動し、番号順またはランダム10問、単語→意味・意味→単語の両方向、プレビューと問題／解答PDFを確認できます。古文帳も同じ操作に対応します。
+
+OCRには[練習画像の取得・利用手順](demo-samples/README.md)を利用してください。初期英語帳と番号が重ならない51〜60番の10語をJPEGで用意しています。画像をリポジトリから保存して既存OCR画面へアップロードし、結果を確認・編集して英語帳へ追記します。素材の取得先は共有ログインID・パスワードとともにデモ紹介時に案内します。
+
+画像の原稿は同じJSONの `ocr_samples` です。生成CLIと日本語フォントの指定例は[素材README](demo-samples/README.md#原稿と再生成)にあります。Pillowで作成したJPEGをGit管理しており、Web起動時の生成は不要です。
+
+自動テストでは共有アカウントの別セッションへの編集反映、範囲内のランダム10問（重複なし）、2冊と両方向のプレビュー・実PDF、画像の生成、OCR応答の確認・編集・保存を検証します。別セッションの共有は同一インスタンスのDB内での動作です。独立インスタンス間の共有は保証しません。実APIによる画像認識精度、公開先での操作・再生成はIssue #34で確認し、GitHub上の画像取得は素材のpush後に最終確認します。

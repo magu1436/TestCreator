@@ -210,15 +210,20 @@ class DemoFileDatabaseTests(ProcessTestCase):
             initialize()
             run('shell', '-c',
                 "from vocab.models import Word; from ocr.models import APICostLog; "
+                "from wordbank.models import WordList; "
                 "from django.contrib.sessions.models import Session; "
                 "assert Word.objects.count()==69; assert Word.objects.first().term=='changed'; "
+                "assert WordList.objects.count()==2; "
                 "assert APICostLog.objects.count()==1; assert Session.objects.count()==1")
             env['TEST_DEMO_DB'] = str(root / 'second.sqlite3')
             initialize()
             run('shell', '-c',
                 "from vocab.models import Word; from ocr.models import APICostLog; "
+                "from wordbank.models import WordList; "
                 "from django.contrib.sessions.models import Session; "
                 "assert Word.objects.count()==70; assert Word.objects.first().term=='apple'; "
+                "assert list(WordList.objects.order_by('pk').values_list('name', flat=True))=="
+                "['デモ英単語50','デモ古文単語20']; "
                 "assert APICostLog.objects.count()==0; assert Session.objects.count()==0")
             env['TEST_DEMO_DB'] = str(root / 'first.sqlite3')
             run('shell', '-c', "from vocab.models import Word; assert Word.objects.count()==69")
