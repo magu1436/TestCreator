@@ -55,6 +55,9 @@ INSTALLED_APPS = [
     'quiz',
 ]
 
+if DEMO_MODE:
+    INSTALLED_APPS.append('demo.apps.DemoConfig')
+
 AUTH_USER_MODEL = 'accounts.AdminUser'
 
 LOGIN_REDIRECT_URL = "home"

@@ -10,6 +10,8 @@
 
 本番の管理者パスワード、SECRET_KEY、APIキーを共有パスワードに流用しないでください。ホームとログイン画面に共有資格情報を表示します。共通画面にはデータ共有・予告なしの消失・個人情報と実データの入力禁止を案内します。問題／解答PDFには案内を含めません。
 
+`DEMO_USERNAME` は前後の空白がなく、UnicodeのNFKC正規化済みで、既存ログインフォームの入力制約（最大150文字、NULL文字不可）を満たす値を指定してください。ログインフォームがユーザー名の空白除去とNFKC正規化を行うため、` demo ` や全角英数字の `ｄｅｍｏ` はDB操作前に構成エラーにします。設定値の自動変換は行いません。`collectstatic` は共有資格情報の検証を除外します。
+
 共有アカウントは起動時に作成し、通常のログインフォームを利用します。自動ログインは行いません。既存の同名ユーザーもactive・非staff・非superuserに揃え、グループと個別権限を削除します。設定パスワードの変更は次回起動時に反映し、変更がなければハッシュを維持します。デモでは既存のstaff・superuserセッションを含め、`/admin` と `/admin/` 以下を全HTTPメソッドで拒否します。通常モードの管理権限は従来どおりです。
 
 ## 対応する操作
@@ -24,7 +26,13 @@
 
 起動順序は設定検証 → `migrate --noinput` → `initialize_runtime`（デモでは `ensure_demo_user` → `seed_demo`）→ Gunicornです。分岐は `.env` と派生設定を反映したDjangoの `DEMO_MODE` に従います。DB選択後、`HomeConfig.ready()` が全DBのSQLite指定と共有資格情報をDB操作前に検証します。派生設定でも検証を無効にしないでください。初期化で失敗すると起動処理を停止し、Webサーバーを開始しません。非デモ時は従来のMySQL/TiDB選択と `ensure_superuser` を維持し、デモ専用コマンドはDB操作前に拒否します。
 
-DB不要の `collectstatic` だけはこの検証を除外し、共有資格情報なしでdummy DB経路を利用します。
+デモ専用の `demo.apps.DemoConfig` は `DEMO_MODE=true` の場合だけ登録し、初回投入記録 `demo.DemoInitialization`（`demo_demoinitialization` テーブル）とそのマイグレーションだけを管理します。通常モードには専用モデル・テーブル・マイグレーション・ContentType・権限を追加しません。`seed_demo` は引き続き `accounts` に配置し、モード検証後に専用モデルを取得します。
+
+派生設定で `DEMO_MODE` を上書きする場合は `INSTALLED_APPS` の `demo.apps.DemoConfig` 登録と `DATABASES` も揃えて選択し直してください。`HomeConfig.ready()` は最終モードと実際のアプリ登録が一致しない場合、DB操作前に構成エラーにします。通常モードで予約済みのデモSQLiteパスを残した場合も、DB操作前に拒否します。`.env` よりプロセス環境変数を優先します。
+
+DB不要の `collectstatic` はSQLiteと共有資格情報の検証だけを除外し、共有資格情報なしでdummy DB経路を利用します。モードと専用アプリ登録の整合検証は実施します。
+
+旧 `home.DemoInitialization` を使う未公開版のデモDBは、データ移行せず一時DBを作り直して確認します。旧DBの編集内容は引き継ぎません。通常環境の既存DBに対する専用テーブルの自動削除や、マイグレーションの巻き戻しは行いません。
 
 `seed_demo` は既存 `scripts/seed_words.py` の50語を暫定サンプルとして利用します。投入と完了記録を同一トランザクションで保存し、同じDBで再実行しても重複作成せず、利用者が編集・削除した単語や単語帳を復元しません。公開向けの内容整備と適合性確認は[Issue #30](https://github.com/magu1436/TestCreator/issues/30)の残作業です。既存の開発用seedスクリプトの実行方法・挙動は変更していません。
 

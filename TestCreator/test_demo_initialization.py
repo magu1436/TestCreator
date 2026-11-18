@@ -9,17 +9,23 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase as ProcessTestCase
 from unittest.mock import patch
 
+from django.apps import apps
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 
+from accounts.forms import LoginForm
 from vocab.models import Word
 from wordbank.models import WordList
 
 
 class DemoInitializationTests(TestCase):
+    @property
+    def marker(self):
+        return apps.get_model('demo', 'DemoInitialization')
+
     def initialize(self):
         call_command('ensure_demo_user', stdout=StringIO())
         call_command('seed_demo', stdout=StringIO())
@@ -52,7 +58,13 @@ class DemoInitializationTests(TestCase):
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff or user.is_superuser)
         self.assertEqual(authenticate(username='demo', password='test-demo-password'), user)
+        form = LoginForm(data={'username': 'demo', 'password': 'test-demo-password'})
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.get_user(), user)
+        for username in (' demo ', 'ｄｅｍｏ'):
+            self.assertEqual(form.fields['username'].clean(username), 'demo')
         self.assertEqual(Word.objects.count(), 50)
+        self.assertEqual(self.marker.objects.count(), 1)
         word = Word.objects.first()
         word.term = 'edited'
         word.save()
@@ -64,10 +76,13 @@ class DemoInitializationTests(TestCase):
         self.assertEqual(word.term, 'edited')
         self.assertEqual(Word.objects.count(), 49)
         self.assertEqual(WordList.objects.count(), 1)
+        self.assertEqual(self.marker.objects.count(), 1)
         Word.objects.all().delete()
         WordList.objects.all().delete()
         self.initialize()
         self.assertEqual(WordList.objects.count(), 0)
+        self.assertEqual(Word.objects.count(), 0)
+        self.assertEqual(self.marker.objects.count(), 1)
 
     def test_user_privileges_and_password_are_reconciled(self):
         user = get_user_model().objects.create_superuser(username='demo', password='old')
@@ -93,8 +108,11 @@ class DemoInitializationTests(TestCase):
             with self.assertRaises(RuntimeError):
                 call_command('seed_demo', stdout=StringIO())
         self.assertEqual(WordList.objects.count(), 0)
+        self.assertEqual(Word.objects.count(), 0)
+        self.assertEqual(self.marker.objects.count(), 0)
         self.initialize()
         self.assertEqual(Word.objects.count(), 50)
+        self.assertEqual(self.marker.objects.count(), 1)
 
     @override_settings(DEMO_MODE=False)
     def test_commands_refuse_normal_mode_without_database_queries(self):

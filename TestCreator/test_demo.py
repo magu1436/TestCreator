@@ -30,10 +30,9 @@ class DemoSafetyTests(TestCase):
             apps.get_app_config("home").ready()
 
     @override_settings(DEMO_MODE=False, DEMO_PASSWORD='')
-    def test_normal_database_settings_do_not_require_demo_credentials(self):
-        for engine in ('django.db.backends.mysql', 'django_tidb'):
-            with patch.object(settings, 'DATABASES', {'default': {'ENGINE': engine}}):
-                apps.get_app_config('home').ready()
+    def test_disabled_mode_with_demo_app_is_rejected(self):
+        with self.assertRaisesMessage(ImproperlyConfigured, 'DEMO_MODEとdemoアプリ'):
+            apps.get_app_config('home').ready()
 
     def test_secondary_database_cannot_bypass_demo_safety(self):
         databases = {'default': {'ENGINE': 'django.db.backends.sqlite3'},

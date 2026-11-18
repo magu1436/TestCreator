@@ -1,11 +1,11 @@
 """既存の開発用データを初回だけ投入する暫定的な接続点。"""
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from accounts.management.commands.ensure_demo_user import require_demo
-from home.models import DemoInitialization
 from scripts.seed_words import WORDS
 from vocab.models import Word
 from wordbank.models import WordList
@@ -16,6 +16,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         require_demo()
+        DemoInitialization = apps.get_model('demo', 'DemoInitialization')
         with transaction.atomic():
             _, created = DemoInitialization.objects.get_or_create(key='initial-samples')
             if not created:
