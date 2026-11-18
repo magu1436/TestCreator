@@ -12,6 +12,12 @@
 
 共有アカウントは通常のログインフォームを利用します。自動ログインやユーザーの自動作成は行いません。デモでは既存のstaff・superuserセッションを含め、`/admin` と `/admin/` 以下を全HTTPメソッドで拒否します。通常モードの管理権限は従来どおりです。
 
+## 対応する操作
+
+[公開デモ仕様書（正本）](https://docs.google.com/document/d/1ZziDbjLtnwCEcHECjoDa0XChiCCFmQQpeR4HQblHsH4/edit)と[Issue #28](https://github.com/magu1436/TestCreator/issues/28)に基づき、単語帳の一覧・閲覧・作成・削除、配下の単語の追加・更新・削除、OCR、プレビュー、問題／解答PDFの生成を既存フローで扱います。
+
+ここでいう単語帳の編集は、配下の単語の編集を指します。単語帳名変更機能の新設はIssue #28の対象外です。
+
 ## 後続のDB・初期化実装との契約
 
 Issue #28はDB選択や初期化を追加しません。Issue #29で最終的な `DATABASES` をSQLiteに設定し、同じ `DEMO_USERNAME` / `DEMO_PASSWORD` でactive・非staff・非superuserの共有ユーザーを準備します。DB選択の完了後、`HomeConfig.ready()` が全DBのSQLite指定と共有資格情報を検証します。`migrate` を含むコマンドのDB操作前に不正な構成を拒否します。派生設定を利用する場合も、この検証を無効にしないでください。
