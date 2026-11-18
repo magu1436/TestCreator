@@ -22,13 +22,14 @@ const onSubmit = async () => {
     const increaseProgress = () => {
         progressbar.increase(Math.round(1 / proceedFilesAmount * 100));
     }
+    // エラー(利用上限・OCR失敗・通信失敗)が起きたら残りのファイルは処理せず、追加済みの行は残す。
+    // エラー内容は共通処理(runPostMethod)が alert で通知済み。
     try {
-        // エラー(利用上限など)が起きたら残りのファイルは処理せず、追加済みの行は残す。
         for (const f of dropzone.droppedFiles){
             const fd = new FormData();
             fd.append("files", f.file);
             const data = await runPostMethod(getUrl("ocr:ocr"), fd);
-            // 通信失敗時は共通処理が通知済みでundefinedを返すため、ここで処理を打ち切る。
+            // 通信失敗時は例外ではなくundefinedが返る。
             if (!data) break;
             console.log(data.message);
             data.words.forEach((w: { number: number; term: string; meaning: string; }) => {
@@ -38,6 +39,9 @@ const onSubmit = async () => {
             dropzone.removeImageFile(f);
             increaseProgress();
         }
+    } catch (err) {
+        // サーバーがエラーを返した場合(429・502など)。通知済みのため記録だけ残して打ち切る。
+        console.error(err);
     } finally {
         submitBtn.textContent = "アップロード開始"
         submitBtn.disabled = false;

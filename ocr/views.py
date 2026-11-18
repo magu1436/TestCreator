@@ -36,7 +36,8 @@ class OcrView(TemplateView):
 
     def post(self, request):
 
-        # 有料APIのため、未ログインの利用者には共有の利用枠を使わせない。
+        # 有料APIのため、未ログインの利用者には共有の利用枠を使わせない(全環境で拒否)。
+        # Ajaxの呼び出し元がエラー内容を受け取れるよう、LoginRequiredMixinのリダイレクトではなくJSONの403を返す。
         if not request.user.is_authenticated:
             return JsonResponse({"err": "OCRを利用するにはログインしてください。"}, status=403)
 
