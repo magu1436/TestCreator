@@ -8,6 +8,8 @@ import pypdf
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.http import JsonResponse, FileResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 from django.urls import reverse
 from django.utils.encoding import iri_to_uri
@@ -22,6 +24,7 @@ from .modules.configure import create_configure
 FILE_NAME_FORMAT: Final[str] = "%Y_%m_%d_%H_%M_%S_%f.pdf"
 
 
+@method_decorator(ensure_csrf_cookie, name="get")
 class TestConfigureView(TemplateView):
     def get(self, request):
         default_wordlist = WordList.objects.first()
