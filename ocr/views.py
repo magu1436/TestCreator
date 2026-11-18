@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 from django.http import JsonResponse
 
@@ -8,6 +10,7 @@ from .forms import APICostLogForm
 from wordbank.models import WordList
 
 
+@method_decorator(ensure_csrf_cookie, name="get")
 class InterfaceView(TemplateView):
 
     def get(self, request):
