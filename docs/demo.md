@@ -18,6 +18,10 @@
 
 ここでいう単語帳の編集は、配下の単語の編集を指します。単語帳名変更機能の新設はIssue #28の対象外です。
 
+## OCR利用上限
+
+デモでは `OCR_DAILY_LIMIT` が未設定のとき、OCRを全利用者の合計で1日10回までに制限します。上限の設定、回数の数え方、SQLite再生成による利用回数のリセット、ログの確認、デモだけを止める手順は[OCR利用上限と公開デモの運用](ocr-usage-limit.md)を参照してください。
+
 ## 後続のDB・初期化実装との契約
 
 Issue #28はDB選択や初期化を追加しません。Issue #29で最終的な `DATABASES` をSQLiteに設定し、同じ `DEMO_USERNAME` / `DEMO_PASSWORD` でactive・非staff・非superuserの共有ユーザーを準備します。DB選択の完了後、`HomeConfig.ready()` が全DBのSQLite指定と共有資格情報を検証します。`migrate` を含むコマンドのDB操作前に不正な構成を拒否します。派生設定を利用する場合も、この検証を無効にしないでください。
@@ -28,4 +32,4 @@ DB不要の `collectstatic` だけはこの検証を除外し、既存のdummy D
 
 `python manage.py test --settings=TestCreator.demo_test_settings --noinput` はテスト専用の一時SQLiteとテスト内ユーザーを利用します。この設定は本番のSQLite選択や起動時ユーザー生成を実装するものではありません。
 
-統合テストはCSRF検証を有効にして通常ログイン、単語帳・単語操作、OCR、プレビュー、実WeasyPrintによる日本語PDFを確認します。OCRは外部API応答境界だけを置換するため実API料金は発生しません。既存のOCR戻り値 `cost=None` と保存する `estimated_cost` の不整合はIssue #33で扱います。公開環境の実OCRや再初期化の確認はIssue #34の範囲です。
+統合テストはCSRF検証を有効にして通常ログイン、単語帳・単語操作、OCR、プレビュー、実WeasyPrintによる日本語PDFを確認します。OCRは外部API応答境界だけを置換するため実API料金は発生しません。公開環境の実OCRや再初期化の確認はIssue #34の範囲です。
