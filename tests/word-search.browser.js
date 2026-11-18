@@ -11,6 +11,8 @@
     const originalRange = [startRange.value, endRange.value];
     const original = table.words.map(row => [row, row.isVisible, row.isSelected]);
     const originalInput = input.value;
+    const allWordCheckbox = document.getElementById('all-word-checkbox');
+    const originalAllChecked = allWordCheckbox?.checked;
     const fixtures = [
         new WordRow(-301, 90001, 'searchprobe-apple', '検証用果物', 'editorprobe-a'),
         new WordRow(-302, 90002, 'searchprobe-apricot', '検証用果物', 'editorprobe-b'),
@@ -58,6 +60,20 @@
         verifyVisibleRows([], '日本語入力の変換確定中のEnterでは検索しない');
         input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
         verifyVisibleRows([-303], 'Enterキーによる検索');
+        if (location.pathname.includes('/editor/') && allWordCheckbox) {
+            verify('検証用果物', [-301, -302], '全選択前の絞り込み');
+            const selectedIds = () => table.words.filter(row => row.isSelected).map(row => row.id);
+            allWordCheckbox.checked = false;
+            allWordCheckbox.click(); // 未チェック→チェックにして全選択する
+            if (JSON.stringify(selectedIds()) !== JSON.stringify([-301, -302])) {
+                throw new Error(`全選択は表示中の単語だけを選択する: 実際=${JSON.stringify(selectedIds())}`);
+            }
+            allWordCheckbox.click();
+            if (allWordCheckbox.checked || selectedIds().length !== 0) {
+                throw new Error('全選択の解除で選択が残っている');
+            }
+            results.push('全選択は検索で表示中の単語だけを選択する');
+        }
         const allIds = table.words.map(row => row.id);
         verify('', allIds, '空欄検索で全件復帰');
         verify(' \t　 ', allIds, '空白のみの検索で全件復帰');
@@ -76,6 +92,7 @@
             row.isSelected = selected;
         });
         input.value = originalInput;
+        if (allWordCheckbox) allWordCheckbox.checked = originalAllChecked;
         [startRange.value, endRange.value] = originalRange;
     }
 })()

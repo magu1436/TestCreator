@@ -58,7 +58,8 @@ endRangeElement.addEventListener("change", onRangedByNumber);
 // 全選択チェックボックス機能
 export const onAllWordCheckbox = () => {
     const checkbox = document.getElementById("all-word-checkbox") as HTMLInputElement;
-    wordTable.words.forEach(w => {w.isSelected = checkbox.checked});
+    // 検索などで非表示になっている単語は選択しない(全選択→削除で非表示の単語まで消さないため)
+    wordTable.words.forEach(w => {w.isSelected = checkbox.checked && w.isVisible});
 }
 
 // 単語帳追加機能
