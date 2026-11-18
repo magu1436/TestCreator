@@ -1,5 +1,6 @@
-"""共有ユーザーと暫定サンプルの初回初期化を検証する。"""
+"""共有ユーザーと公開サンプルの初回初期化を検証する。"""
 from io import StringIO
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -63,7 +64,18 @@ class DemoInitializationTests(TestCase):
         self.assertEqual(form.get_user(), user)
         for username in (' demo ', 'ｄｅｍｏ'):
             self.assertEqual(form.fields['username'].clean(username), 'demo')
-        self.assertEqual(Word.objects.count(), 50)
+        self.assertEqual(Word.objects.count(), 70)
+        self.assertEqual(list(WordList.objects.order_by('pk').values_list('name', flat=True)),
+                         ['デモ英単語50', 'デモ古文単語20'])
+        self.assertFalse(WordList.objects.exclude(created_by=user).exists())
+        self.assertFalse(Word.objects.exclude(latest_edited_by=user).exists())
+        samples = json.loads((Path(__file__).resolve().parent.parent / 'demo' / 'data' /
+                              'samples.json').read_text(encoding='utf-8-sig'))
+        for sample in samples['wordlists']:
+            with self.subTest(wordlist=sample['name']):
+                wordlist = WordList.objects.get(name=sample['name'])
+                self.assertEqual(list(wordlist.words.order_by('number').values(
+                    'number', 'term', 'meaning')), sample['words'])
         self.assertEqual(self.marker.objects.count(), 1)
         word = Word.objects.first()
         word.term = 'edited'
@@ -74,8 +86,8 @@ class DemoInitializationTests(TestCase):
         word.refresh_from_db()
         self.assertEqual(user.password, password)
         self.assertEqual(word.term, 'edited')
-        self.assertEqual(Word.objects.count(), 49)
-        self.assertEqual(WordList.objects.count(), 1)
+        self.assertEqual(Word.objects.count(), 69)
+        self.assertEqual(WordList.objects.count(), 2)
         self.assertEqual(self.marker.objects.count(), 1)
         Word.objects.all().delete()
         WordList.objects.all().delete()
@@ -104,14 +116,24 @@ class DemoInitializationTests(TestCase):
 
     def test_seed_failure_rolls_back_and_can_retry(self):
         call_command('ensure_demo_user', stdout=StringIO())
-        with patch('vocab.models.Word.objects.bulk_create', side_effect=RuntimeError('seed failed')):
+        bulk_create = Word.objects.bulk_create
+        calls = []
+
+        def fail_second_book(words):
+            calls.append(words)
+            if len(calls) == 2:
+                raise RuntimeError('seed failed')
+            return bulk_create(words)
+
+        with patch('vocab.models.Word.objects.bulk_create', side_effect=fail_second_book):
             with self.assertRaises(RuntimeError):
                 call_command('seed_demo', stdout=StringIO())
+        self.assertEqual(len(calls), 2)
         self.assertEqual(WordList.objects.count(), 0)
         self.assertEqual(Word.objects.count(), 0)
         self.assertEqual(self.marker.objects.count(), 0)
         self.initialize()
-        self.assertEqual(Word.objects.count(), 50)
+        self.assertEqual(Word.objects.count(), 70)
         self.assertEqual(self.marker.objects.count(), 1)
 
     @override_settings(DEMO_MODE=False)
@@ -189,17 +211,17 @@ class DemoFileDatabaseTests(ProcessTestCase):
             run('shell', '-c',
                 "from vocab.models import Word; from ocr.models import APICostLog; "
                 "from django.contrib.sessions.models import Session; "
-                "assert Word.objects.count()==49; assert Word.objects.first().term=='changed'; "
+                "assert Word.objects.count()==69; assert Word.objects.first().term=='changed'; "
                 "assert APICostLog.objects.count()==1; assert Session.objects.count()==1")
             env['TEST_DEMO_DB'] = str(root / 'second.sqlite3')
             initialize()
             run('shell', '-c',
                 "from vocab.models import Word; from ocr.models import APICostLog; "
                 "from django.contrib.sessions.models import Session; "
-                "assert Word.objects.count()==50; assert Word.objects.first().term=='apple'; "
+                "assert Word.objects.count()==70; assert Word.objects.first().term=='apple'; "
                 "assert APICostLog.objects.count()==0; assert Session.objects.count()==0")
             env['TEST_DEMO_DB'] = str(root / 'first.sqlite3')
-            run('shell', '-c', "from vocab.models import Word; assert Word.objects.count()==49")
+            run('shell', '-c', "from vocab.models import Word; assert Word.objects.count()==69")
             env['TEST_DEMO_DB'] = str(root / 'missing-directory' / 'unwritable.sqlite3')
             result = subprocess.run([sys.executable, 'manage.py', 'migrate', '--noinput'],
                                     env=env, capture_output=True, timeout=30)
