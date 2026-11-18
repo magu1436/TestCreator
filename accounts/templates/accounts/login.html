@@ -4,6 +4,7 @@
 <div class="h1">Login</div>
 {% endblock %}
 {% block content %}
+{% include 'includes/demo_credentials.html' %}
 <form method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}

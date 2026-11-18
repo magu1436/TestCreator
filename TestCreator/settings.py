@@ -30,6 +30,11 @@ SECRET_KEY = 'django-insecure-enz9sj4*_4a5ll=^l=z2_h+t44fr=yv@h)0d^v9#=s*mx8y*=7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 
+# DEBUGやログイン状態とは独立した、明示的なデモ設定。
+DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
+DEMO_USERNAME = os.environ.get('DEMO_USERNAME', 'demo')
+DEMO_PASSWORD = os.environ.get('DEMO_PASSWORD', '')
+
 ALLOWED_HOSTS = []
 
 
@@ -56,6 +61,7 @@ LOGIN_REDIRECT_URL = "home"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'TestCreator.demo.DemoAdminMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,6 +80,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
+                'TestCreator.demo.demo_context',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
