@@ -4,7 +4,8 @@
     const { WordRow, WordTable } = await import('/static/vocab/js/dist/word.js');
     const table = WordTable.instance;
     const input = document.getElementById('search_box');
-    const button = input.nextElementSibling;
+    const button = document.getElementById('search-button');
+    if (!input || !button) throw new Error('検索ボックスまたは検索ボタン(#search-button)が見つからない');
     const startRange = document.getElementById('start-range');
     const endRange = document.getElementById('end-range');
     const originalRange = [startRange.value, endRange.value];
@@ -15,6 +16,7 @@
         new WordRow(-302, 90002, 'searchprobe-apricot', '検証用果物', 'editorprobe-b'),
         new WordRow(-303, 90003, 'SearchProbe-Car', '検証用乗物', 'EditorProbe-A'),
     ];
+    const registered = [];
     const results = [];
     const verifyVisibleRows = (expected, label) => {
         const actual = table.words.filter(row => row.isVisible).map(row => row.id);
@@ -36,7 +38,10 @@
         verifyVisibleRows(expected, label);
     };
     try {
-        fixtures.forEach(row => table.registerWordRow(row));
+        fixtures.forEach(row => {
+            table.registerWordRow(row);
+            registered.push(row);
+        });
         fixtures[2].isSelected = true;
         verify('searchprobe-apple', [-301], '検索ボタンによる単語の単一検索');
         if (fixtures[2].isSelected || !fixtures[2].element.classList.contains('d-none')) {
@@ -48,6 +53,11 @@
         verify('searchprobe-car', [-303], '大文字を含む単語を小文字で検索');
         verify('SEARCHPROBE-APPLE', [-301], '小文字の単語を大文字で検索');
         verify('searchprobe-該当なし', [], '該当なしの検索');
+        input.value = '検証用乗物';
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', isComposing: true }));
+        verifyVisibleRows([], '日本語入力の変換確定中のEnterでは検索しない');
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        verifyVisibleRows([-303], 'Enterキーによる検索');
         const allIds = table.words.map(row => row.id);
         verify('', allIds, '空欄検索で全件復帰');
         verify(' \t　 ', allIds, '空白のみの検索で全件復帰');
@@ -60,7 +70,7 @@
         verifyVisibleRows(rangedIds, '検索後も番号範囲の変更で絞り込める');
         return { passed: results };
     } finally {
-        fixtures.forEach(row => table.removeWordRow(row));
+        registered.forEach(row => table.removeWordRow(row));
         original.forEach(([row, visible, selected]) => {
             row.setVisible(visible);
             row.isSelected = selected;
