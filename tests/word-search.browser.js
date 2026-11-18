@@ -13,7 +13,7 @@
     const fixtures = [
         new WordRow(-301, 90001, 'searchprobe-apple', '検証用果物', 'editorprobe-a'),
         new WordRow(-302, 90002, 'searchprobe-apricot', '検証用果物', 'editorprobe-b'),
-        new WordRow(-303, 90003, 'searchprobe-car', '検証用乗物', 'editorprobe-a'),
+        new WordRow(-303, 90003, 'SearchProbe-Car', '検証用乗物', 'EditorProbe-A'),
     ];
     const results = [];
     const verifyVisibleRows = (expected, label) => {
@@ -45,6 +45,8 @@
         verify('検証用果物', [-301, -302], '意味の検索');
         verify('editorprobe-a', [-301, -303], '最終編集者の検索');
         verify('  searchprobe- \t 検証用果物　 editorprobe-a  ', [-301], '空白区切りのフィールド横断AND検索');
+        verify('searchprobe-car', [-303], '大文字を含む単語を小文字で検索');
+        verify('SEARCHPROBE-APPLE', [-301], '小文字の単語を大文字で検索');
         verify('searchprobe-該当なし', [], '該当なしの検索');
         const allIds = table.words.map(row => row.id);
         verify('', allIds, '空欄検索で全件復帰');
