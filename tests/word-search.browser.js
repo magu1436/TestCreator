@@ -51,6 +51,11 @@
         }
         verify('検証用果物', [-301, -302], '意味の検索');
         verify('editorprobe-a', [-301, -303], '最終編集者の検索');
+        const returned = table.setVisibleByKeywords('searchprobe-a').map(row => row.id);
+        if (JSON.stringify(returned) !== JSON.stringify([-301, -302])) {
+            throw new Error(`setVisibleByKeywords の戻り値が表示中の単語と一致しない: 実際=${JSON.stringify(returned)}`);
+        }
+        results.push('setVisibleByKeywords が表示中の単語を返す');
         verify('  searchprobe- \t 検証用果物　 editorprobe-a  ', [-301], '空白区切りのフィールド横断AND検索');
         verify('searchprobe-car', [-303], '大文字を含む単語を小文字で検索');
         verify('SEARCHPROBE-APPLE', [-301], '小文字の単語を大文字で検索');
@@ -87,6 +92,9 @@
         return { passed: results };
     } finally {
         registered.forEach(row => table.removeWordRow(row));
+        // 入力欄の値と表示・選択状態は、どちらもテスト開始時のスナップショットへ戻す。
+        // 範囲入力に change を発火すると番号範囲だけで表示が再計算され、開始時の検索条件による
+        // 絞り込みが失われるため、意図的に発火しない。
         original.forEach(([row, visible, selected]) => {
             row.setVisible(visible);
             row.isSelected = selected;

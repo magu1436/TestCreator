@@ -301,7 +301,7 @@ export class WordTable {
                 }
             }
         })
-        return this._words.filter(wr => {wr.isVisible});
+        return this._words.filter(wr => wr.isVisible);
     }
 
     /**
