@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView
 from django.conf import settings
+from django.db import DatabaseError
 
 from .modules.gpt import GPT4oMini
 from .forms import APICostLogForm
@@ -49,7 +50,12 @@ class OcrView(TemplateView):
             logger.error("OpenAI APIキーが設定されていないため、OCRを実行できません")
             return JsonResponse({"err": "現在OCRを利用できません。"}, status=503)
 
-        reservation = reserve_ocr_slot()
+        try:
+            reservation = reserve_ocr_slot()
+        except DatabaseError:
+            # SQLiteの書き込み待ちのタイムアウトなど。枠は消費されていないため、利用者には一時的な停止として返す。
+            logger.exception("OCR利用枠を確保できませんでした")
+            return JsonResponse({"err": "現在OCRを利用できません。時間をおいて再度お試しください。"}, status=503)
         if not reservation.allowed:
             return JsonResponse({"err": _build_refusal_message(reservation.limit)}, status=429)
 

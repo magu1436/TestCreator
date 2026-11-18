@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import connection
+from django.db import OperationalError, connection
 from django.test import SimpleTestCase, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 
@@ -282,3 +282,13 @@ class OcrViewTests(TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertGreater(APICostLog.objects.get(request_id="test-request").estimated_cost, 0)
         self.assertEqual(OCRDailyUsage.objects.get().count, 1)
+
+    @override_settings(OCR_DAILY_LIMIT=3, DEMO_MODE=True)
+    def test_database_error_while_reserving_returns_json_503(self):
+        with patch(CREATE, return_value=_completion()) as create, \
+                patch("ocr.views.reserve_ocr_slot", side_effect=OperationalError("database is locked")):
+            with self.assertLogs("ocr.views", level="ERROR"):
+                response = self.post()
+            create.assert_not_called()
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("現在OCRを利用できません", response.json()["err"])

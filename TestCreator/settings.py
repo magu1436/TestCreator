@@ -45,10 +45,10 @@ def parse_ocr_daily_limit(raw):
     if raw is None or raw.strip() == '':
         return None
     try:
-        value = int(raw.strip())
+        value = int(raw)  # 前後の空白は int() が無視する。
     except ValueError:
-        raise ImproperlyConfigured('OCR_DAILY_LIMITには-1以上の整数を指定してください。')
-    if value < -1:
+        value = None
+    if value is None or value < -1:
         raise ImproperlyConfigured('OCR_DAILY_LIMITには-1以上の整数を指定してください。')
     return value
 
@@ -180,8 +180,12 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        # Cloud Runは標準出力のテキストにレベルを付けないため、本文にレベルとロガー名を含める。
+        'plain': {'format': '%(levelname)s %(name)s: %(message)s'},
+    },
     'handlers': {
-        'console': {'class': 'logging.StreamHandler', 'stream': 'ext://sys.stdout'},
+        'console': {'class': 'logging.StreamHandler', 'stream': 'ext://sys.stdout', 'formatter': 'plain'},
     },
     'loggers': {
         'ocr': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
