@@ -26,6 +26,18 @@ class DatabaseConfigurationTests(TestCase):
             self.assertEqual(database_config(dict(self.env, DJANGO_DEBUG=value)),
                              database_config(self.env))
 
+    def test_demo_ignores_external_database_settings(self):
+        config = database_config(dict(self.env, DEMO_MODE='true', DB_BACKEND='invalid',
+                                      DB_SSL_CA='/missing/production.pem'))
+        self.assertEqual(config['ENGINE'], 'django.db.backends.sqlite3')
+        self.assertTrue(Path(config['NAME']).is_absolute())
+        self.assertEqual(set(config), {'ENGINE', 'NAME'})
+        self.assertEqual(database_config({'DEMO_MODE': 'true'}), config)
+
+    def test_demo_static_collection_does_not_select_sqlite(self):
+        self.assertEqual(database_config({'DEMO_MODE': 'true'}, collectstatic=True),
+                         {'ENGINE': 'django.db.backends.dummy'})
+
     def test_missing_settings_fail_without_credentials_in_error(self):
         for key in self.env:
             env = dict(self.env)

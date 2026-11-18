@@ -1,0 +1,419 @@
+{
+  "wordlists": [
+    {
+      "name": "デモ英単語50",
+      "words": [
+        {
+          "number": 1,
+          "term": "apple",
+          "meaning": "りんご"
+        },
+        {
+          "number": 2,
+          "term": "book",
+          "meaning": "本"
+        },
+        {
+          "number": 3,
+          "term": "water",
+          "meaning": "水"
+        },
+        {
+          "number": 4,
+          "term": "house",
+          "meaning": "家"
+        },
+        {
+          "number": 5,
+          "term": "school",
+          "meaning": "学校"
+        },
+        {
+          "number": 6,
+          "term": "friend",
+          "meaning": "友人"
+        },
+        {
+          "number": 7,
+          "term": "family",
+          "meaning": "家族"
+        },
+        {
+          "number": 8,
+          "term": "morning",
+          "meaning": "朝"
+        },
+        {
+          "number": 9,
+          "term": "night",
+          "meaning": "夜"
+        },
+        {
+          "number": 10,
+          "term": "city",
+          "meaning": "都市"
+        },
+        {
+          "number": 11,
+          "term": "river",
+          "meaning": "川"
+        },
+        {
+          "number": 12,
+          "term": "mountain",
+          "meaning": "山"
+        },
+        {
+          "number": 13,
+          "term": "sea",
+          "meaning": "海"
+        },
+        {
+          "number": 14,
+          "term": "sky",
+          "meaning": "空"
+        },
+        {
+          "number": 15,
+          "term": "sun",
+          "meaning": "太陽"
+        },
+        {
+          "number": 16,
+          "term": "moon",
+          "meaning": "月"
+        },
+        {
+          "number": 17,
+          "term": "star",
+          "meaning": "星"
+        },
+        {
+          "number": 18,
+          "term": "rain",
+          "meaning": "雨"
+        },
+        {
+          "number": 19,
+          "term": "snow",
+          "meaning": "雪"
+        },
+        {
+          "number": 20,
+          "term": "wind",
+          "meaning": "風"
+        },
+        {
+          "number": 21,
+          "term": "tree",
+          "meaning": "木"
+        },
+        {
+          "number": 22,
+          "term": "flower",
+          "meaning": "花"
+        },
+        {
+          "number": 23,
+          "term": "bird",
+          "meaning": "鳥"
+        },
+        {
+          "number": 24,
+          "term": "dog",
+          "meaning": "犬"
+        },
+        {
+          "number": 25,
+          "term": "cat",
+          "meaning": "猫"
+        },
+        {
+          "number": 26,
+          "term": "food",
+          "meaning": "食べ物"
+        },
+        {
+          "number": 27,
+          "term": "bread",
+          "meaning": "パン"
+        },
+        {
+          "number": 28,
+          "term": "milk",
+          "meaning": "牛乳"
+        },
+        {
+          "number": 29,
+          "term": "rice",
+          "meaning": "米"
+        },
+        {
+          "number": 30,
+          "term": "fruit",
+          "meaning": "果物"
+        },
+        {
+          "number": 31,
+          "term": "read",
+          "meaning": "読む"
+        },
+        {
+          "number": 32,
+          "term": "write",
+          "meaning": "書く"
+        },
+        {
+          "number": 33,
+          "term": "speak",
+          "meaning": "話す"
+        },
+        {
+          "number": 34,
+          "term": "listen",
+          "meaning": "耳を傾ける"
+        },
+        {
+          "number": 35,
+          "term": "walk",
+          "meaning": "歩く"
+        },
+        {
+          "number": 36,
+          "term": "run",
+          "meaning": "走る"
+        },
+        {
+          "number": 37,
+          "term": "open",
+          "meaning": "開ける"
+        },
+        {
+          "number": 38,
+          "term": "close",
+          "meaning": "閉める"
+        },
+        {
+          "number": 39,
+          "term": "learn",
+          "meaning": "学ぶ"
+        },
+        {
+          "number": 40,
+          "term": "teach",
+          "meaning": "教える"
+        },
+        {
+          "number": 41,
+          "term": "happy",
+          "meaning": "うれしい"
+        },
+        {
+          "number": 42,
+          "term": "small",
+          "meaning": "小さい"
+        },
+        {
+          "number": 43,
+          "term": "large",
+          "meaning": "大きい"
+        },
+        {
+          "number": 44,
+          "term": "new",
+          "meaning": "新しい"
+        },
+        {
+          "number": 45,
+          "term": "old",
+          "meaning": "古い"
+        },
+        {
+          "number": 46,
+          "term": "fast",
+          "meaning": "速い"
+        },
+        {
+          "number": 47,
+          "term": "slow",
+          "meaning": "遅い"
+        },
+        {
+          "number": 48,
+          "term": "warm",
+          "meaning": "暖かい"
+        },
+        {
+          "number": 49,
+          "term": "cold",
+          "meaning": "冷たい"
+        },
+        {
+          "number": 50,
+          "term": "kind",
+          "meaning": "親切な"
+        }
+      ]
+    },
+    {
+      "name": "デモ古文単語20",
+      "words": [
+        {
+          "number": 1,
+          "term": "あはれなり",
+          "meaning": "しみじみと心に響く"
+        },
+        {
+          "number": 2,
+          "term": "をかし",
+          "meaning": "趣があって心を引かれる"
+        },
+        {
+          "number": 3,
+          "term": "いと",
+          "meaning": "たいへん"
+        },
+        {
+          "number": 4,
+          "term": "いみじ",
+          "meaning": "程度がはなはだしい"
+        },
+        {
+          "number": 5,
+          "term": "うつくし",
+          "meaning": "小さくてかわいらしい"
+        },
+        {
+          "number": 6,
+          "term": "ありがたし",
+          "meaning": "めったにない"
+        },
+        {
+          "number": 7,
+          "term": "あやし",
+          "meaning": "不思議に思われる"
+        },
+        {
+          "number": 8,
+          "term": "おどろく",
+          "meaning": "はっと気づく"
+        },
+        {
+          "number": 9,
+          "term": "ねんず",
+          "meaning": "じっとこらえる"
+        },
+        {
+          "number": 10,
+          "term": "ながむ",
+          "meaning": "物思いに沈んで眺める"
+        },
+        {
+          "number": 11,
+          "term": "しのぶ",
+          "meaning": "人目を避けて隠れる"
+        },
+        {
+          "number": 12,
+          "term": "わぶ",
+          "meaning": "つらく思って困る"
+        },
+        {
+          "number": 13,
+          "term": "やがて",
+          "meaning": "そのままの状態で"
+        },
+        {
+          "number": 14,
+          "term": "つとめて",
+          "meaning": "早朝"
+        },
+        {
+          "number": 15,
+          "term": "つごもり",
+          "meaning": "月の終わりの日"
+        },
+        {
+          "number": 16,
+          "term": "よろづ",
+          "meaning": "さまざまなこと"
+        },
+        {
+          "number": 17,
+          "term": "ことわり",
+          "meaning": "もっともな道理"
+        },
+        {
+          "number": 18,
+          "term": "ゆかし",
+          "meaning": "見たり聞いたりしたい"
+        },
+        {
+          "number": 19,
+          "term": "おぼつかなし",
+          "meaning": "はっきりせず気がかりだ"
+        },
+        {
+          "number": 20,
+          "term": "つれづれなり",
+          "meaning": "することがなく手持ち無沙汰だ"
+        }
+      ]
+    }
+  ],
+  "ocr_samples": {
+    "target_wordlist_name": "デモ英単語50",
+    "words": [
+      {
+        "number": 51,
+        "term": "window",
+        "meaning": "窓"
+      },
+      {
+        "number": 52,
+        "term": "door",
+        "meaning": "扉"
+      },
+      {
+        "number": 53,
+        "term": "desk",
+        "meaning": "机"
+      },
+      {
+        "number": 54,
+        "term": "chair",
+        "meaning": "椅子"
+      },
+      {
+        "number": 55,
+        "term": "clock",
+        "meaning": "時計"
+      },
+      {
+        "number": 56,
+        "term": "picture",
+        "meaning": "絵"
+      },
+      {
+        "number": 57,
+        "term": "letter",
+        "meaning": "手紙"
+      },
+      {
+        "number": 58,
+        "term": "music",
+        "meaning": "音楽"
+      },
+      {
+        "number": 59,
+        "term": "garden",
+        "meaning": "庭"
+      },
+      {
+        "number": 60,
+        "term": "station",
+        "meaning": "駅"
+      }
+    ]
+  }
+}

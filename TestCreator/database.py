@@ -1,11 +1,23 @@
 """Explicit database configuration shared by development and production."""
 
 from pathlib import Path
+from tempfile import gettempdir
 
 from django.core.exceptions import ImproperlyConfigured
 
 
+def demo_database_path():
+    """デモ専用DBの予約済みパスを設定と起動検証で共有する。"""
+    return Path(gettempdir()) / 'testcreator-demo.sqlite3'
+
+
 def database_config(environ, *, collectstatic=False):
+    # デモでは外部DB設定を一切参照せず、コンテナ内の専用ファイルを使う。
+    if environ.get("DEMO_MODE", "false").lower() == "true":
+        if collectstatic:
+            return {"ENGINE": "django.db.backends.dummy"}
+        return {"ENGINE": "django.db.backends.sqlite3",
+                "NAME": demo_database_path()}
     backend = environ.get("DB_BACKEND", "")
     engines = {"mysql": "django.db.backends.mysql", "tidb": "django_tidb"}
     if backend and backend not in engines:
