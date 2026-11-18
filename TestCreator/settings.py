@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import sys
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 from .database import database_config
 
@@ -34,6 +35,26 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
 DEMO_USERNAME = os.environ.get('DEMO_USERNAME', 'demo')
 DEMO_PASSWORD = os.environ.get('DEMO_PASSWORD', '')
+
+
+def parse_ocr_daily_limit(raw):
+    """OCR_DAILY_LIMITを解釈する。未設定・空はNone(既定値を使う)、不正値は起動時に拒否する。
+
+    有効値は-1以上の整数(-1は無制限、0はOCR停止、正の整数は1日あたりの上限回数)。
+    """
+    if raw is None or raw.strip() == '':
+        return None
+    try:
+        value = int(raw.strip())
+    except ValueError:
+        raise ImproperlyConfigured('OCR_DAILY_LIMITには-1以上の整数を指定してください。')
+    if value < -1:
+        raise ImproperlyConfigured('OCR_DAILY_LIMITには-1以上の整数を指定してください。')
+    return value
+
+
+# OCRの1日あたりの利用上限(全利用者の合計)。Noneは既定値(デモ時10回、通常時は無制限)を意味する。
+OCR_DAILY_LIMIT = parse_ocr_daily_limit(os.environ.get('OCR_DAILY_LIMIT'))
 
 ALLOWED_HOSTS = []
 
