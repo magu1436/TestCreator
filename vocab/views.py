@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.forms.models import model_to_dict
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models.deletion import ProtectedError
@@ -37,11 +37,14 @@ class EditView(LoginRequiredMixin, TemplateView):
 @method_decorator(ensure_csrf_cookie, name="get")
 class ReferenceView(TemplateView):
     def get(self, request):
-        if not self.request.GET:
+        target_wordlist_id = self.request.GET.get("wordlist")
+        if target_wordlist_id is None:
+            # 無関係なクエリ（広告パラメータなど）だけの場合も既定の単語帳を表示する。
             target_wordlist = WordList.objects.first()
+        elif not target_wordlist_id.isdecimal():
+            raise Http404("単語帳IDが不正です。")
         else:
-            target_wordlist_id = int(self.request.GET.get("wordlist"))
-            target_wordlist = get_object_or_404(WordList, pk=target_wordlist_id)
+            target_wordlist = get_object_or_404(WordList, pk=int(target_wordlist_id))
         param = {
             "target_word_list": target_wordlist,
         }
