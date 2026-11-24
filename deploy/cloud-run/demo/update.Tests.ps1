@@ -42,6 +42,60 @@ Assert ($global:Calls.Count -eq 4) 'describe/update/describe/revision describe�
 Assert (($global:Calls[1][0..3] -join ' ') -eq 'run services update wordtest-demo') '既存デモサービスだけ更新してください'
 Assert ($global:Calls[1] -contains "--image=$image") 'digest固定が必要です'
 Assert (@($global:Calls[1] | Where-Object { $_ -match 'env|secret|ingress|memory|cpu|account|traffic' }).Count -eq 0) 'image以外の設定を変更しています'
+# 実応答ではstatus.urlと公開設定が別形式でも、同じサービスの有効URLになる。
+$hashUrl = 'https://wordtest-demo-derix6hqia-an.a.run.app'
+$numberUrl = 'https://wordtest-demo-1033430002089.asia-northeast1.run.app'
+foreach ($configuredUrl in @($numberUrl, $hashUrl)) {
+    Reset-Fixture
+    $global:Before.status.url = $hashUrl
+    $global:Before.metadata.annotations = @{'run.googleapis.com/urls' = (@($numberUrl, $hashUrl) | ConvertTo-Json -Compress)}
+    $global:Before.spec.template.spec.containers[0].env[1].value = ([uri]$configuredUrl).Host
+    $global:Before.spec.template.spec.containers[0].env[2].value = $configuredUrl
+    $result = & $script -Image $image
+    Assert ($result -eq 'wordtest-demo-new') '同じサービスの別形式URLを拒否しています'
+    Assert ($global:Calls.Count -eq 4) '有効URLで更新まで完了していません'
+}
+# 注釈なしの旧URL形式もそのまま受け入れる。
+Reset-Fixture
+$global:Before.status.url = $hashUrl
+$global:Before.spec.template.spec.containers[0].env[1].value = ([uri]$hashUrl).Host
+$global:Before.spec.template.spec.containers[0].env[2].value = $hashUrl
+$result = & $script -Image $image
+Assert ($result -eq 'wordtest-demo-new') '注釈なしの旧URL形式を拒否しています'
+# JSON配列1要素を文字列へ展開せず、注釈なしの従来形式も維持する。
+Reset-Fixture
+$global:Before.metadata.annotations = @{'run.googleapis.com/urls' = ('["' + $global:Before.status.url + '"]')}
+$result = & $script -Image $image
+Assert ($result -eq 'wordtest-demo-new') 'URL配列1要素を拒否しています'
+foreach ($case in @('unknown','wildcard','production','http','path','csrf-mismatch','invalid-json','json-string','json-object','json-null','non-string','production-entry','http-entry','invalid-status','non-string-annotation','multiple-hosts','invalid-url-entry')) {
+    Reset-Fixture
+    $global:Before.status.url = $hashUrl
+    $global:Before.metadata.annotations = @{'run.googleapis.com/urls' = (@($numberUrl, $hashUrl) | ConvertTo-Json -Compress)}
+    $global:Before.spec.template.spec.containers[0].env[1].value = ([uri]$numberUrl).Host
+    $global:Before.spec.template.spec.containers[0].env[2].value = $numberUrl
+    switch ($case) {
+        unknown { $global:Before.spec.template.spec.containers[0].env[1].value='wordtest-demo-999.asia-northeast1.run.app'; $global:Before.spec.template.spec.containers[0].env[2].value='https://wordtest-demo-999.asia-northeast1.run.app' }
+        wildcard { $global:Before.spec.template.spec.containers[0].env[1].value='*' }
+        production { $global:Before.spec.template.spec.containers[0].env[1].value='wordtest-1033430002089.asia-northeast1.run.app'; $global:Before.spec.template.spec.containers[0].env[2].value='https://wordtest-1033430002089.asia-northeast1.run.app' }
+        http { $global:Before.spec.template.spec.containers[0].env[2].value=$numberUrl.Replace('https:', 'http:') }
+        path { $global:Before.spec.template.spec.containers[0].env[2].value="$numberUrl/path" }
+        csrf-mismatch { $global:Before.spec.template.spec.containers[0].env[2].value=$hashUrl }
+        invalid-json { $global:Before.metadata.annotations['run.googleapis.com/urls']='[' }
+        json-string { $global:Before.metadata.annotations['run.googleapis.com/urls']='"https://wordtest-demo-1033430002089.asia-northeast1.run.app"' }
+        json-object { $global:Before.metadata.annotations['run.googleapis.com/urls']='{}' }
+        json-null { $global:Before.metadata.annotations['run.googleapis.com/urls']='null' }
+        non-string { $global:Before.metadata.annotations['run.googleapis.com/urls']='[123]' }
+        production-entry { $global:Before.metadata.annotations['run.googleapis.com/urls']='["https://wordtest-1033430002089.asia-northeast1.run.app"]' }
+        http-entry { $global:Before.metadata.annotations['run.googleapis.com/urls']='["http://wordtest-demo-1033430002089.asia-northeast1.run.app"]' }
+        invalid-status { $global:Before.status.url='https://wordtest-derix6hqia-an.a.run.app' }
+        non-string-annotation { $global:Before.metadata.annotations['run.googleapis.com/urls']=123 }
+        multiple-hosts { $global:Before.spec.template.spec.containers[0].env[1].value=@(([uri]$numberUrl).Host, 'evil.example') }
+        invalid-url-entry { $global:Before.metadata.annotations['run.googleapis.com/urls']='["https://wordtest-demo-1033430002089.asia-northeast1.run.app/path"]' }
+    }
+    $failed=$false; try { & $script -Image $image } catch { $failed=$true }
+    Assert $failed "不正なURL設定 $case を拒否していません"
+    Assert ($global:Calls.Count -eq 1) "不正なURL設定 $case で更新を実行しました"
+}
 # 同じdigestの再実行で新revisionが作られなくても、実際の稼働状態で判定する。
 Reset-Fixture
 $global:Before.status.latestCreatedRevisionName='wordtest-demo-new'
