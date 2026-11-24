@@ -1,0 +1,11 @@
+# 非秘密のフラットな文字列だけを設定する。DB_*、秘密値を追加しない。
+DJANGO_SETTINGS_MODULE: "TestCreator.production"
+DJANGO_DEBUG: "false"
+DEMO_MODE: "true"
+DEMO_USERNAME: "demo"
+OUTPUT_PDF_DIR: "/tmp/exports"
+# 最初は到達不能なホストで起動し、取得した実URLにdeploy.ps1が更新する。
+ALLOWED_HOSTS: "bootstrap.invalid"
+CSRF_TRUSTED_ORIGINS: "https://bootstrap.invalid"
+# Issue #33実装までは無効な予約値。公開前に上限と監視を確認する。
+OCR_DAILY_LIMIT: "10"

@@ -13,6 +13,7 @@ from django.urls import reverse
 from TestCreator.settings import parse_ocr_daily_limit
 
 from accounts.models import AdminUser
+from wordbank.models import WordList
 
 from .forms import APICostLogForm
 from .models import APICostLog, OCRDailyUsage
@@ -292,3 +293,17 @@ class OcrViewTests(TestCase):
             create.assert_not_called()
         self.assertEqual(response.status_code, 503)
         self.assertIn("現在OCRを利用できません", response.json()["err"])
+
+
+class InterfaceCsrfCookieTests(TestCase):
+    """OCR画面がCSRF Cookieを発行することの回帰テスト。"""
+
+    def setUp(self):
+        user = AdminUser.objects.create_user("tester", password="pass-1234")
+        self.wordlist = WordList.objects.create(name="テスト単語帳", created_by=user)
+
+    def test_anonymous_first_visit_sets_csrf_cookie(self):
+        response = self.client.get(reverse("ocr:interface"), {"wordlist": self.wordlist.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("csrftoken", response.cookies)
+        self.assertTrue(response.cookies["csrftoken"].value)

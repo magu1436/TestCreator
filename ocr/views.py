@@ -2,6 +2,8 @@ import logging
 
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.db import DatabaseError
@@ -14,6 +16,7 @@ from wordbank.models import WordList
 logger = logging.getLogger(__name__)
 
 
+@method_decorator(ensure_csrf_cookie, name="get")
 class InterfaceView(TemplateView):
 
     def get(self, request):

@@ -44,3 +44,7 @@ deploy ブランチは移管と参照先の確認が終わるまで残し、今�
 
 - [コンテナのランタイム契約](https://docs.cloud.google.com/run/docs/container-contract)
 - [サービスの環境変数の設定](https://docs.cloud.google.com/run/docs/configuring/services/environment-variables)
+
+## 公開デモ
+
+本番と分離した wordtest-demo の設定・非公開デプロイ・公開前条件は [公開デモ手順](demo/README.md) を参照してください。
