@@ -210,10 +210,14 @@ GCP認証前に、起動イベントの `github.sha` を取得済みrepository�
 その後workspace直下に生成するWIF credential JSONはbuild contextに入りません。checkoutの認証情報も保存しません。
 pushにはgcloudのcredential helperを使用します。
 
-更新前に、サービスの存在、専用実行SA、`DEMO_MODE=true`、`DB_*` 不在、実URLとhost/CSRF設定、
+更新前に、サービスの存在、専用実行SA、`DEMO_MODE=true`、`DB_*` 不在、Cloud Runが返すサービスURL一覧とhost/CSRF設定、
 専用Secretの数値バージョン参照を検証します。Django秘密鍵は `DJANGO_DEMO_SECRET_KEY`、
 パスワードは `DEMO_ADMIN_PASSWORD`、OCRは `OPENAI_API_KEY`、または用途ごとに別の `wordtest-demo-` Secretを許可します。
 Secret値の取得は行いません。
+URL候補は `status.url` と `metadata.annotations["run.googleapis.com/urls"]` のJSON配列から取得します。
+[Cloud Runの2形式のサービスURL](https://docs.cloud.google.com/run/docs/triggering/https-request#service_url)のどちらで公開設定されていても、APIが返したURLと一致すれば既存設定を維持して更新します。
+注釈がない場合は `status.url` だけを候補にします。単一の `CSRF_TRUSTED_ORIGINS` が候補URLのいずれかと完全一致し、単一の `ALLOWED_HOSTS` が同じURLのホストと完全一致することが必要です。
+URLを名前から推測して許可せず、未登録ホスト、ワイルドカード、別サービス、http、不正URL、hostとCSRFの不整合、不正なURL注釈は更新前に拒否します。
 
 image以外の設定を維持するため、更新前のtrafficがlatest revisionへ100%でない場合は拒否します。
 切り戻し等で旧revisionへ固定している場合や分割配信の場合は、管理者が配信方針を別途確認する必要があります。
