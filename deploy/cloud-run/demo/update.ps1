@@ -29,10 +29,28 @@ foreach ($entry in $template.containers[0].env) {
     $environment[$entry.name] = $entry
 }
 Require ($environment.DEMO_MODE.value -ceq 'true') 'DEMO_MODE=trueが必要です。'
-$url = $before.status.url
-Require ($url -cmatch '^https://wordtest-demo-[a-z0-9-]+\.(?:a\.|asia-northeast1\.)?run\.app$') '期待するデモURLではありません。'
-Require ($environment.ALLOWED_HOSTS.value -ceq ([uri]$url).Host) 'ALLOWED_HOSTSが実URLと一致しません。'
-Require ($environment.CSRF_TRUSTED_ORIGINS.value -ceq $url) 'CSRF_TRUSTED_ORIGINSが実URLと一致しません。'
+# APIが返した当該サービスのURLだけを候補にし、別形式の公開URLも維持する。
+$serviceUrls = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+function Add-ServiceUrl($Value) {
+    Require ($Value -is [string] -and $Value -cmatch '\Ahttps://wordtest-demo-[a-z0-9-]+\.(?:a\.|asia-northeast1\.)?run\.app\z') '期待するデモURLではありません。'
+    $null = $serviceUrls.Add($Value)
+}
+Add-ServiceUrl $before.status.url
+if ($before.metadata.Contains('annotations')) {
+    $annotations = $before.metadata.annotations
+    Require ($annotations -is [Collections.IDictionary]) 'サービスannotationsが不正です。'
+    if ($annotations.Contains('run.googleapis.com/urls')) {
+        $rawUrls = $annotations['run.googleapis.com/urls']
+        Require ($rawUrls -is [string]) 'サービスURL一覧はJSON文字列が必要です。'
+        # -NoEnumerateで配列1要素や空配列の型も維持する。不正JSONは更新前に停止する。
+        $urls = ConvertFrom-Json -InputObject $rawUrls -AsHashtable -NoEnumerate
+        Require ($urls -is [array]) 'サービスURL一覧はJSON配列が必要です。'
+        foreach ($candidate in $urls) { Add-ServiceUrl $candidate }
+    }
+}
+$origin = $environment.CSRF_TRUSTED_ORIGINS.value
+Require ($origin -is [string] -and $serviceUrls.Contains($origin)) 'CSRF_TRUSTED_ORIGINSがサービスの実URLと一致しません。'
+Require ($environment.ALLOWED_HOSTS.value -is [string] -and $environment.ALLOWED_HOSTS.value -ceq ([uri]$origin).Host) 'ALLOWED_HOSTSとCSRF_TRUSTED_ORIGINSが同じ実URLに対応していません。'
 $secretNames = @{}
 foreach ($pair in @(@('DJANGO_SECRET_KEY','DJANGO_DEMO_SECRET_KEY'),@('DEMO_PASSWORD','DEMO_ADMIN_PASSWORD'),@('OPENAI_API_KEY','OPENAI_API_KEY'))) {
     $entry = $environment[$pair[0]]
