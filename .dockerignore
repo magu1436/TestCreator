@@ -1,19 +1,42 @@
-.git
-.env
-.env.*
-!.env.example
-.venv
-venv
-__pycache__
-*.pyc
-node_modules
+# Gitメタデータ・ローカル作業環境（アプリの実行・ビルドには不要）
+**/.git
+.claude/
+.agents/
+.codex/
+.worktrees/
+worktrees/
+.vscode/
+.devcontainer/
+
+# ローカルの秘密情報・証明書（設定例は残す）
+.release-private/
+.certs/
+**/.env
+**/.env.*
+!**/.env.example
+**/.test-db.env
+**/*.pem
+**/*.key
+
+# インストール済み依存・コンパイル済みファイル（ビルド中に再生成）
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
 **/node_modules
 **/dist
 **/*.tsbuildinfo
-staticfiles
-*.pem
-*.key
-media
-*.sqlite3
-.test-db.env
+**/staticfiles
+
+# ローカル実行データ・一時ファイル・ログ・エディタのバックアップ
+**/media
+**/*.sqlite3
+**/*.sqlite3-journal
+**/*.sqlite3-wal
+**/*.sqlite3-shm
+temp/
+**/*.log
+**/*.swp
+**/*.swo
+**/*~
 docs/*.tmp.md

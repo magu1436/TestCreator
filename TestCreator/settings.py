@@ -179,7 +179,8 @@ OUTPUT_PDF_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # OCRの利用枠・失敗をCloud Runの標準ログ(標準出力)で確認できるよう、ocrアプリのINFO以上を出力する。
-# Django既定のロガー設定は維持する。
+# django.securityのWARNING以上も標準出力へ送り、親への伝播を止めて重複出力を防ぐ。
+# その他のDjango既定ロガー設定は維持する。
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -192,5 +193,6 @@ LOGGING = {
     },
     'loggers': {
         'ocr': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'django.security': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
     },
 }

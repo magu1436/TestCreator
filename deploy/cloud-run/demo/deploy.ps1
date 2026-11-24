@@ -16,18 +16,19 @@ $service = 'wordtest-demo'
 if ($Image -cnotmatch '^asia-northeast1-docker\.pkg\.dev/wordtestcreator/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$') {
     throw 'Imageにはwordtestcreatorのasia-northeast1 Artifact Registryイメージをsha256 digest付きで指定してください。'
 }
-if ($ServiceAccount -cnotmatch '^wordtest-demo(?:-[a-z0-9-]+)?@wordtestcreator\.iam\.gserviceaccount\.com$') {
-    throw 'デモ専用サービスアカウント（wordtest-demo または wordtest-demo-接尾辞）が必要です。'
+if ($ServiceAccount -cnotmatch '^(?:wordtest-demo(?:-[a-z0-9-]+)?|wordtestcreator-demo)@wordtestcreator\.iam\.gserviceaccount\.com$') {
+    throw 'デモ専用サービスアカウント（wordtestcreator-demo、wordtest-demo または wordtest-demo-接尾辞）が必要です。'
 }
 foreach ($reference in @($DjangoSecret, $DemoPasswordSecret, $OpenAiSecret)) {
     if ($reference -cnotmatch '^[A-Za-z][A-Za-z0-9_-]*:[1-9][0-9]*$' -or $reference -match '(?i)placeholder|replace|example') {
         throw 'Secretは実際のID:数値バージョンを指定してください。latestやプレースホルダーは使用できません。'
     }
 }
-if ($DjangoSecret -notmatch '^wordtest-demo-' -or $DemoPasswordSecret -notmatch '^wordtest-demo-' -or
+if (($DjangoSecret -notmatch '^wordtest-demo-' -and $DjangoSecret.Split(':')[0] -cne 'DJANGO_DEMO_SECRET_KEY') -or
+    ($DemoPasswordSecret -notmatch '^wordtest-demo-' -and $DemoPasswordSecret.Split(':')[0] -cne 'DEMO_ADMIN_PASSWORD') -or
     $DjangoSecret.Split(':')[0] -eq $DemoPasswordSecret.Split(':')[0] -or
     $OpenAiSecret.Split(':')[0] -in @($DjangoSecret.Split(':')[0], $DemoPasswordSecret.Split(':')[0])) {
-    throw 'Django秘密鍵と共有パスワードは別々のwordtest-demo-専用Secret、OCRは別Secretを指定してください。'
+    throw 'Django秘密鍵はDJANGO_DEMO_SECRET_KEY、共有パスワードはDEMO_ADMIN_PASSWORD、または別々のwordtest-demo-専用Secret、OCRは別Secretを指定してください。'
 }
 $environment = Join-Path $PSScriptRoot 'environment.example.yaml'
 if (-not (Test-Path -LiteralPath $environment -PathType Leaf)) { throw 'デモ環境変数ファイルがありません。' }
