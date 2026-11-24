@@ -1,11 +1,7 @@
-name: デモの手動更新
+name: デモの承認後デプロイ
 on:
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: '検証済み40桁commit SHA、またはrefs/tags/タグ名'
-        required: true
-        type: string
+  push:
+    branches: [main]
 permissions:
   contents: read
   id-token: write
@@ -15,7 +11,7 @@ concurrency:
 jobs:
   deploy:
     # 制御用workflowとスクリプトはmain上のものだけを使用する。
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: demo
@@ -32,12 +28,12 @@ jobs:
           path: control
           fetch-depth: 0
           persist-credentials: false
-      - name: 認証前にcommitを確定
+      - name: 認証前に起動時commitを確定
         id: resolve
         env:
-          REQUESTED_REF: ${{ inputs.ref }}
+          TRIGGERING_SHA: ${{ github.sha }}
         run: |
-          ./control/deploy/cloud-run/demo/resolve-source.ps1 -Ref $env:REQUESTED_REF -Repository ./control
+          ./control/deploy/cloud-run/demo/resolve-source.ps1 -Ref $env:TRIGGERING_SHA -Repository ./control
       - name: 確定したソース取得
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -83,18 +79,22 @@ jobs:
       - name: 実行結果
         if: always()
         env:
-          REQUESTED_REF: ${{ inputs.ref }}
+          REQUESTED_REF: ${{ github.ref }}
+          EVENT_NAME: ${{ github.event_name }}
+          TRIGGERING_SHA: ${{ github.sha }}
           RESOLVED_SHA: ${{ steps.resolve.outputs.sha }}
           DEPLOY_IMAGE: ${{ steps.image.outputs.image }}
           REVISION: ${{ steps.deploy.outputs.revision }}
           RESULT: ${{ job.status }}
           WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
-          # 入力をコードやMarkdownとして実行しない。失敗時も追跡情報を残す。
+          # イベント情報をコードやMarkdownとして実行しない。失敗時も追跡情報を残す。
           $details = [ordered]@{
             actor = $env:GITHUB_ACTOR
             time_utc = [DateTime]::UtcNow.ToString('o')
             requested_ref = $env:REQUESTED_REF
+            event_name = $env:EVENT_NAME
+            triggering_sha = $env:TRIGGERING_SHA
             resolved_sha = $env:RESOLVED_SHA
             image_digest = $env:DEPLOY_IMAGE
             revision = $env:REVISION

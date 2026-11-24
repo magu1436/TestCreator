@@ -119,7 +119,7 @@ WhatIfの無呼び出し、対象固定、入力拒否、実URLの反映、リ�
 
 ## GitHub Actionsによる既存デモサービスの更新（#32）
 
-`.github/workflows/deploy-demo.yml` は `workflow_dispatch` だけで起動します。
+`.github/workflows/deploy-demo.yml` は `main` へのpush（PRのマージを含む）で起動し、GitHub Environment `demo` の承認後にbuildとdeployを実行します。
 既存の `wordtestcreator / asia-northeast1 / wordtest-demo` のimageだけを更新します。
 本番 `wordtest`、TiDB、公開設定、環境変数、Secret、CPU・メモリ等は変更しません。
 `deploy.ps1` は初期構築用で、再実行時にサービスを非公開へ戻すため、このworkflowでは呼びません。
@@ -131,10 +131,19 @@ WhatIfの無呼び出し、対象固定、入力拒否、実URLの反映、リ�
 
 ### 一度だけ行う設定
 
-GitHubで `demo` Environmentを作成し、Environmentのdeployment branchesを `main` だけに制限します。
-必要に応じて承認者も設定してください。workflow自身も `main` からの実行だけを許可します。
-手動実行ボタンを利用するため、workflowファイルと制御用スクリプトをデフォルトブランチ `main` に配置する必要があります。
-検証済みアプリのSHA/tagと、workflowを実行するブランチは別です。
+**workflowを `main` へ取り込む前に、次のEnvironment保護設定を完了してください。**
+YAMLの `environment: demo` だけでは承認を強制できません。Environmentが存在しないと、実行時に保護ルールなしで自動生成されます。
+
+1. リポジトリの **Settings → Environments** で `demo` を作成または開きます。
+2. **Required reviewers** を有効にし、リポジトリowner・利用者の `magu1436` を追加して **Save protection rules** で保存します。承認者の設定はこの運用の必須条件です。
+3. **Prevent self-review** は無効にします。本人がpushした変更を本人が内容確認して承認する運用なので、有効にすると本人が承認できません。
+4. **Allow administrators to bypass configured protection rules** は無効にして保存します。管理者も承認を経由する設定にします。
+5. **Deployment branches and tags** で **Selected branches and tags** を選び、Branchの `main` だけを許可します。workflow自身も `push` / `main` の組み合わせだけを許可します。
+
+この承認は、mainへのマージ承認とは別のデプロイ承認です。build・認証・push・Cloud Run更新はすべて `demo` の同じjob内にあり、承認前には実行されません。
+Environmentと保護ルールはpublic repositoryでは現行のGitHubプランで利用できます。private repositoryのrequired reviewers等はプランに依存するため、非公開化する場合は承認保護が利用できることを再確認してください。
+設定方法・利用条件は[GitHub公式のEnvironment管理手順](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)を参照してください。
+この変更ではGitHubのEnvironment保護設定も適用していません。
 
 Environment `demo` のVariablesへ以下を登録します。サービスアカウントのJSON鍵は登録しません。
 
@@ -154,7 +163,7 @@ assertion.repository_id == 'REPOSITORY_ID' &&
 assertion.repository_owner_id == 'OWNER_ID' &&
 assertion.sub == 'repo:magu1436/TestCreator:environment:demo' &&
 assertion.workflow_ref == 'magu1436/TestCreator/.github/workflows/deploy-demo.yml@refs/heads/main' &&
-assertion.event_name == 'workflow_dispatch'
+assertion.event_name == 'push'
 ```
 
 `workflow_ref` は通常のworkflowのclaimです。`job_workflow_ref` はreusable workflow用なので使用しません。
@@ -188,15 +197,16 @@ Actionは公式リリースを確認してcommit SHAで固定しています
 
 ### 更新の実行
 
-1. 対象commitを検証し、40桁commit SHA、または明示的な `refs/tags/タグ名` を決めます。branch名・短縮SHA・`latest` は受け付けません。annotated tagもcommitへ解決します。
-2. GitHub Actionsの「デモの手動更新」から「Run workflow」を開き、workflowのbranchに `main` を選び、`ref` に対象を入力します。
-3. `demo` Environmentの承認を設定した場合は、その対象・SHAを確認して承認します。デモ更新は直列実行で、進行中の更新を新規実行がキャンセルすることはありません。
-4. Summaryでactor、UTC日時、入力ref、解決後SHA、image digest、revision、結果、workflow自身のSHA、run URLを確認します。失敗時も取得済み情報を残し、未到達の項目は空になります。
+1. 検証済み変更を `main` へマージ、またはpushします。「デモの承認後デプロイ」が起動し、`demo` Environmentの承認待ちになります。手動のRun workflowやref入力は使用しません。
+2. `magu1436` がActionsの対象runで **Review deployments** を開き、対象commit SHAと変更内容を確認して `demo` を承認します。承認するとbuild、GCP認証、image push、既存デモサービス更新の順に実行します。
+3. 更新後はサービスとrevisionのReady、対象image digest、対象revisionへの100%trafficを検証します。デモ更新は直列実行で、進行中の更新を新規実行がキャンセルすることはありません。
+4. Summaryでactor、UTC日時、起動元ref、event名、起動時SHA、解決後SHA、image digest、revision、結果、workflow自身のSHA、run URLを確認します。失敗時も取得済み情報を残し、未到達の項目は空になります。
 5. 成功後にデモURLでログインと主要操作を確認します。SQLiteの再初期化により既存デモデータがリセットされる点は、初期構築と同じです。
 
-`ref` はGCP認証前に取得済みrepository内のcommitへ解決し、そのSHAを `source/` に別checkoutします。
+GCP認証前に、起動イベントの `github.sha` を取得済みrepository内のcommitへ解決し、そのSHAを `source/` に別checkoutします。
+承認待ちの間にmainへ別のpushがあっても、このrunは起動時のcommitを使います。承認後に最新mainを解決する動作はありません。
 制御スクリプトは `main` 上のworkflow自身のSHAを `control/` にcheckoutして実行します。
-対象commit内のデプロイスクリプトは実行しません。Docker buildもGCP認証前に `source/` だけをcontextとして実行するため、
+`source/` 内のデプロイスクリプトは実行せず、`control/` のものを使用します。Docker buildもGCP認証前に `source/` だけをcontextとして実行するため、
 その後workspace直下に生成するWIF credential JSONはbuild contextに入りません。checkoutの認証情報も保存しません。
 pushにはgcloudのcredential helperを使用します。
 
