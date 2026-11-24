@@ -198,9 +198,9 @@ Actionは公式リリースを確認してcommit SHAで固定しています
 ### 更新の実行
 
 1. 検証済み変更を `main` へマージ、またはpushします。「デモの承認後デプロイ」が起動し、`demo` Environmentの承認待ちになります。手動のRun workflowやref入力は使用しません。
-2. `magu1436` がActionsの対象runで **Review deployments** を開き、対象commit SHAと変更内容を確認して `demo` を承認します。承認するとbuild、GCP認証、image push、既存デモサービス更新の順に実行します。
+2. `magu1436` がActionsの対象runで **Review deployments** を開き、対象commit SHAと変更内容を確認して `demo` を承認します。承認するとLinux/amd64のbuild、GCP認証、image push、実行用manifestのdigest解決、既存デモサービス更新の順に実行します。
 3. 更新後はサービスとrevisionのReady、対象image digest、対象revisionへの100%trafficを検証します。デモ更新は直列実行で、進行中の更新を新規実行がキャンセルすることはありません。
-4. Summaryでactor、UTC日時、起動元ref、event名、起動時SHA、解決後SHA、image digest、revision、結果、workflow自身のSHA、run URLを確認します。失敗時も取得済み情報を残し、未到達の項目は空になります。
+4. Summaryでactor、UTC日時、起動元ref、event名、起動時SHA、解決後SHA、pushした親image digest、実デプロイimage digest、revision、結果、workflow自身のSHA、run URLを確認します。失敗時も取得済み情報を残し、未到達の項目は空になります。
 5. 成功後にデモURLでログインと主要操作を確認します。SQLiteの再初期化により既存デモデータがリセットされる点は、初期構築と同じです。
 
 GCP認証前に、起動イベントの `github.sha` を取得済みrepository内のcommitへ解決し、そのSHAを `source/` に別checkoutします。
@@ -209,6 +209,14 @@ GCP認証前に、起動イベントの `github.sha` を取得済みrepository�
 `source/` 内のデプロイスクリプトは実行せず、`control/` のものを使用します。Docker buildもGCP認証前に `source/` だけをcontextとして実行するため、
 その後workspace直下に生成するWIF credential JSONはbuild contextに入りません。checkoutの認証情報も保存しません。
 pushにはgcloudのcredential helperを使用します。
+pushで得られるdigestは、実行用manifestとattestation等をまとめたOCI indexの場合があります。
+Cloud RunはLinux/amd64の実行用manifestを稼働revisionのdigestとして返すため、workflowは親indexのdigestと直接比較しません。
+`docker build --platform linux/amd64` で構築後、pushした不変な `イメージ名@親digest` を
+[`docker buildx imagetools inspect --raw`](https://docs.docker.com/reference/cli/docker/buildx/imagetools/inspect/)で読み、`resolve-image.ps1` が実行用digestを解決します。
+OCI index / Docker manifest listではLinux/amd64の候補を1つだけ選び、unknown/unknownのattestationを除外します。
+直接のOCI image manifest / Docker schema2 manifestなら親digestをそのまま使用します。候補なし・複数候補・不正なJSON/schema/digest・未対応の形式はデプロイ前に停止します。
+親参照は解決前に記録し、Summaryの `parent_image_digest` と `image_digest` に親参照と実デプロイ参照をそれぞれ残します。
+既存の `update.ps1` には解決済みdigestを渡し、稼働revisionとの厳密なdigest一致を引き続き検証します。
 
 更新前に、サービスの存在、専用実行SA、`DEMO_MODE=true`、`DB_*` 不在、Cloud Runが返すサービスURL一覧とhost/CSRF設定、
 専用Secretの数値バージョン参照を検証します。Django秘密鍵は `DJANGO_DEMO_SECRET_KEY`、
@@ -230,11 +238,13 @@ image以外の設定を維持するため、更新前のtrafficがlatest revisio
 実GCPを呼ばずに次を実行できます。
 
 ```powershell
+pwsh -NoProfile -File deploy/cloud-run/demo/resolve-image.Tests.ps1
 pwsh -NoProfile -File deploy/cloud-run/demo/resolve-source.Tests.ps1
 pwsh -NoProfile -File deploy/cloud-run/demo/update.Tests.ps1
 pwsh -NoProfile -File deploy/cloud-run/demo/deploy.Tests.ps1
 ```
 
+`resolve-image.Tests.ps1` は実際のindexとattestationの組み合わせ、OCI/Dockerの各形式、候補選択失敗、不正入力とActions出力を検証します。
 `resolve-source.Tests.ps1` は一時Git repositoryでSHA・annotated tag・不正入力を検証し、
 `update.Tests.ps1` はgcloudスタブで正常更新、同digest再実行、失敗後の停止、本番イメージ拒否、
 誤った実行SA/DB設定/Secret/URL、固定・分割traffic、起動失敗、digest/traffic不一致を検証します。
