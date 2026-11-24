@@ -116,3 +116,112 @@ pwsh -NoProfile -File deploy/cloud-run/demo/deploy.Tests.ps1
 WhatIfの無呼び出し、対象固定、入力拒否、実URLの反映、リソース/Secret引数、各段階の失敗停止、deploy成功後の公開IAM残存・除去失敗・不正JSON・条件付きbindingでの停止、Invoker IAMチェック状態の検証と、Windows `.cmd` 経由の空白付きパス・カンマを検証します。
 
 公式仕様: [Cloud Run HTTPS URL](https://docs.cloud.google.com/run/docs/triggering/https-request)、[gcloud run deploy](https://docs.cloud.google.com/sdk/gcloud/reference/run/deploy)、[Secret設定](https://docs.cloud.google.com/run/docs/configuring/services/secrets)。
+
+## GitHub Actionsによる既存デモサービスの更新（#32）
+
+`.github/workflows/deploy-demo.yml` は `workflow_dispatch` だけで起動します。
+既存の `wordtestcreator / asia-northeast1 / wordtest-demo` のimageだけを更新します。
+本番 `wordtest`、TiDB、公開設定、環境変数、Secret、CPU・メモリ等は変更しません。
+`deploy.ps1` は初期構築用で、再実行時にサービスを非公開へ戻すため、このworkflowでは呼びません。
+サービスの初期構築・匿名公開・専用Secretの作成と実行SAへの権限付与は、管理者が別途完了させてください。
+
+この変更では、以下のGitHub Environment / WIF / IAM設定を外部環境へ適用していません。
+設定後の実際のActions実行・Cloud Run更新は未検証です。#31の実環境確認とは別に、初回利用時に確認してください。
+切り戻し手順書の作成は次の作業です。
+
+### 一度だけ行う設定
+
+GitHubで `demo` Environmentを作成し、Environmentのdeployment branchesを `main` だけに制限します。
+必要に応じて承認者も設定してください。workflow自身も `main` からの実行だけを許可します。
+手動実行ボタンを利用するため、workflowファイルと制御用スクリプトをデフォルトブランチ `main` に配置する必要があります。
+検証済みアプリのSHA/tagと、workflowを実行するブランチは別です。
+
+Environment `demo` のVariablesへ以下を登録します。サービスアカウントのJSON鍵は登録しません。
+
+| Variable | 内容 |
+| --- | --- |
+| `WIF_PROVIDER` | デモ専用providerの完全名 `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL/providers/PROVIDER` |
+| `DEPLOY_SERVICE_ACCOUNT` | デモ更新専用SAのメールアドレス（実行SAや本番デプロイSAを流用しない） |
+
+WIF providerのissuerは `https://token.actions.githubusercontent.com` とし、少なくとも次をmappingします。
+`google.subject=assertion.sub`、`attribute.repository_id=assertion.repository_id`、
+`attribute.repository_owner_id=assertion.repository_owner_id`、`attribute.workflow_ref=assertion.workflow_ref`、`attribute.event_name=assertion.event_name`。
+providerのattribute conditionで、実際の不変なrepository ID・owner ID、`demo` Environment、
+`main` 上のこのworkflowだけを許可してください。下記のIDは実値へ置き換えます。
+
+```text
+assertion.repository_id == 'REPOSITORY_ID' &&
+assertion.repository_owner_id == 'OWNER_ID' &&
+assertion.sub == 'repo:magu1436/TestCreator:environment:demo' &&
+assertion.workflow_ref == 'magu1436/TestCreator/.github/workflows/deploy-demo.yml@refs/heads/main' &&
+assertion.event_name == 'workflow_dispatch'
+```
+
+`workflow_ref` は通常のworkflowのclaimです。`job_workflow_ref` はreusable workflow用なので使用しません。
+GitHub側でOIDC subjectをカスタマイズしている場合（不変IDを含むsubjectを選択した場合を含む）は、
+上記 `sub` を実際の `demo` subject完全一致へ変更します。Environmentの照合を省略しないでください。
+リポジトリ名・owner名だけの条件では、削除後の名前再取得への対策になりません。
+専用SAに対する `roles/iam.workloadIdentityUser` も、このproviderの対象repository IDのprincipalSetだけに限定します。
+principalSetは `principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL/attribute.repository_id/REPOSITORY_ID` です。`PROJECT_NUMBER` はpoolを所有するプロジェクトの番号を使います。
+同じpool内に弱い条件の別providerを混在させないでください。
+
+デプロイSAへの権限は次の単位で付与します。プロジェクト全体のEditor、Owner、Cloud Run Adminは不要です。
+
+| 役割 | 付与対象 |
+| --- | --- |
+| `roles/artifactregistry.writer` | `asia-northeast1` のArtifact Registry repository `webapps` のみ |
+| `roles/run.developer` | 既存Cloud Run service `wordtest-demo` のみ（`wordtest`やプロジェクト全体へ付与しない） |
+| `roles/iam.serviceAccountUser`（actAs） | 実行SA `wordtestcreator-demo@wordtestcreator.iam.gserviceaccount.com` のみ |
+
+デプロイSAはSecretの値を読みません。Secret AccessorはデプロイSAへ付与せず、既存のデモ実行SAが必要なSecretだけを読める状態にします。
+Artifact Registryの上記writerはrepository単位のため `webapps` 内の他イメージにも書き込めます。
+workflowはイメージ名を `asia-northeast1-docker.pkg.dev/wordtestcreator/webapps/wordtest-demo` に固定しています。
+既存のプロジェクト全体の強い権限が継承されている場合は、この一覧だけを追加しても分離できないため、管理者が継承権限も確認してください。
+
+根拠: [GitHubのOIDC claims](https://docs.github.com/en/actions/reference/security/oidc)、
+[Google CloudのデプロイパイプラインWIF設定](https://cloud.google.com/iam/docs/workload-identity-federation-with-deployment-pipelines)、
+[auth ActionのWIF設定](https://github.com/google-github-actions/auth)。
+Actionは公式リリースを確認してcommit SHAで固定しています
+（[checkout v6.0.2](https://github.com/actions/checkout/commit/de0fac2e4500dabe0009e67214ff5f5447ce83dd)、
+[auth v3.0.0](https://github.com/google-github-actions/auth/commit/7c6bc770dae815cd3e89ee6cdf493a5fab2cc093)、
+[setup-gcloud v3.0.1](https://github.com/google-github-actions/setup-gcloud/commit/aa5489c8933f4cc7a4f7d45035b3b1440c9c10db)）。
+
+### 更新の実行
+
+1. 対象commitを検証し、40桁commit SHA、または明示的な `refs/tags/タグ名` を決めます。branch名・短縮SHA・`latest` は受け付けません。annotated tagもcommitへ解決します。
+2. GitHub Actionsの「デモの手動更新」から「Run workflow」を開き、workflowのbranchに `main` を選び、`ref` に対象を入力します。
+3. `demo` Environmentの承認を設定した場合は、その対象・SHAを確認して承認します。デモ更新は直列実行で、進行中の更新を新規実行がキャンセルすることはありません。
+4. Summaryでactor、UTC日時、入力ref、解決後SHA、image digest、revision、結果、workflow自身のSHA、run URLを確認します。失敗時も取得済み情報を残し、未到達の項目は空になります。
+5. 成功後にデモURLでログインと主要操作を確認します。SQLiteの再初期化により既存デモデータがリセットされる点は、初期構築と同じです。
+
+`ref` はGCP認証前に取得済みrepository内のcommitへ解決し、そのSHAを `source/` に別checkoutします。
+制御スクリプトは `main` 上のworkflow自身のSHAを `control/` にcheckoutして実行します。
+対象commit内のデプロイスクリプトは実行しません。Docker buildもGCP認証前に `source/` だけをcontextとして実行するため、
+その後workspace直下に生成するWIF credential JSONはbuild contextに入りません。checkoutの認証情報も保存しません。
+pushにはgcloudのcredential helperを使用します。
+
+更新前に、サービスの存在、専用実行SA、`DEMO_MODE=true`、`DB_*` 不在、実URLとhost/CSRF設定、
+専用Secretの数値バージョン参照を検証します。Django秘密鍵は `DJANGO_DEMO_SECRET_KEY`、
+パスワードは `DEMO_ADMIN_PASSWORD`、OCRは `OPENAI_API_KEY`、または用途ごとに別の `wordtest-demo-` Secretを許可します。
+Secret値の取得は行いません。
+
+image以外の設定を維持するため、更新前のtrafficがlatest revisionへ100%でない場合は拒否します。
+切り戻し等で旧revisionへ固定している場合や分割配信の場合は、管理者が配信方針を別途確認する必要があります。
+新revision作成後は、サービスとrevisionのReady、対象digestの一致、実際の対象revisionへの100%trafficを確認します。
+新イメージの起動失敗・配信先の不一致は失敗となり、後続の変更は行いません。
+同digestの再実行で新revisionが作られない場合も、同じ稼働条件を満たせば成功とします。
+
+### ローカルの検証
+
+実GCPを呼ばずに次を実行できます。
+
+```powershell
+pwsh -NoProfile -File deploy/cloud-run/demo/resolve-source.Tests.ps1
+pwsh -NoProfile -File deploy/cloud-run/demo/update.Tests.ps1
+pwsh -NoProfile -File deploy/cloud-run/demo/deploy.Tests.ps1
+```
+
+`resolve-source.Tests.ps1` は一時Git repositoryでSHA・annotated tag・不正入力を検証し、
+`update.Tests.ps1` はgcloudスタブで正常更新、同digest再実行、失敗後の停止、本番イメージ拒否、
+誤った実行SA/DB設定/Secret/URL、固定・分割traffic、起動失敗、digest/traffic不一致を検証します。
+workflowの構文は `actionlint .github/workflows/deploy-demo.yml` でも確認してください。

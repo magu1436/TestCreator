@@ -1,0 +1,107 @@
+name: デモの手動更新
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: '検証済み40桁commit SHA、またはrefs/tags/タグ名'
+        required: true
+        type: string
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: deploy-wordtest-demo
+  cancel-in-progress: false
+jobs:
+  deploy:
+    # 制御用workflowとスクリプトはmain上のものだけを使用する。
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: demo
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      IMAGE_NAME: asia-northeast1-docker.pkg.dev/wordtestcreator/webapps/wordtest-demo
+    steps:
+      - name: 制御用コード取得
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: control
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 認証前にcommitを確定
+        id: resolve
+        env:
+          REQUESTED_REF: ${{ inputs.ref }}
+        run: |
+          ./control/deploy/cloud-run/demo/resolve-source.ps1 -Ref $env:REQUESTED_REF -Repository ./control
+      - name: 確定したソース取得
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ steps.resolve.outputs.sha }}
+          path: source
+          persist-credentials: false
+      - name: イメージ構築
+        env:
+          RESOLVED_SHA: ${{ steps.resolve.outputs.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $actual = git -C source rev-parse HEAD
+          if ($actual -cne $env:RESOLVED_SHA) { throw 'checkoutされたSHAが一致しません。' }
+          # credential生成前に構築する。contextはsource/だけに限定する。
+          docker build --tag "${env:IMAGE_NAME}:run-${env:GITHUB_RUN_ID}-${env:GITHUB_RUN_ATTEMPT}" ./source
+      - name: Workload Identity Federation認証
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOY_SERVICE_ACCOUNT }}
+          project_id: wordtestcreator
+          create_credentials_file: true
+      - name: gcloud準備
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: pushとdigest確定
+        id: image
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
+          $tag = "${env:IMAGE_NAME}:run-${env:GITHUB_RUN_ID}-${env:GITHUB_RUN_ATTEMPT}"
+          docker push $tag
+          $digest = gcloud artifacts docker images describe $tag --project=wordtestcreator --format='value(image_summary.digest)'
+          if ($digest -cnotmatch '^sha256:[a-f0-9]{64}$') { throw 'pushしたdigestを取得できません。' }
+          "image=${env:IMAGE_NAME}@$digest" >> $env:GITHUB_OUTPUT
+      - name: 既存デモサービスのimage更新と稼働確認
+        id: deploy
+        env:
+          DEPLOY_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          ./control/deploy/cloud-run/demo/update.ps1 -Image $env:DEPLOY_IMAGE
+      - name: 実行結果
+        if: always()
+        env:
+          REQUESTED_REF: ${{ inputs.ref }}
+          RESOLVED_SHA: ${{ steps.resolve.outputs.sha }}
+          DEPLOY_IMAGE: ${{ steps.image.outputs.image }}
+          REVISION: ${{ steps.deploy.outputs.revision }}
+          RESULT: ${{ job.status }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          # 入力をコードやMarkdownとして実行しない。失敗時も追跡情報を残す。
+          $details = [ordered]@{
+            actor = $env:GITHUB_ACTOR
+            time_utc = [DateTime]::UtcNow.ToString('o')
+            requested_ref = $env:REQUESTED_REF
+            resolved_sha = $env:RESOLVED_SHA
+            image_digest = $env:DEPLOY_IMAGE
+            revision = $env:REVISION
+            result = $env:RESULT
+            workflow_sha = $env:WORKFLOW_SHA
+            run = "${env:GITHUB_SERVER_URL}/${env:GITHUB_REPOSITORY}/actions/runs/${env:GITHUB_RUN_ID}"
+          }
+          $json = $details | ConvertTo-Json
+          $escaped = [System.Net.WebUtility]::HtmlEncode($json)
+          "<pre>$escaped</pre>" >> $env:GITHUB_STEP_SUMMARY
