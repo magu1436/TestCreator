@@ -21,7 +21,7 @@ class EnvironmentSettingsTests(TestCase):
             env = {key: value for key, value in os.environ.items()
                    if key not in {"API_KEY", "OPENAI_API_KEY", "OUTPUT_PDF_DIR", "ALLOWED_HOSTS",
                                   "CSRF_TRUSTED_ORIGINS", "DJANGO_SECRET_KEY", "DJANGO_DEBUG"}
-                   and not key.startswith(("DB_", "PYTHON"))}
+                   and not key.startswith(("DB_", "DEMO_", "PYTHON"))}
             env.update(variables)
             code = (f"import sys; sys.path.insert(0, {str(root)!r}); "
                     "sys.argv=['manage.py', 'collectstatic']; "
@@ -71,3 +71,15 @@ class EnvironmentSettingsTests(TestCase):
         self.import_settings("TestCreator.production", {},
                              "assert settings.DEBUG is False; "
                              "assert settings.CSRF_TRUSTED_ORIGINS == []")
+
+    def test_demo_defaults_off_and_uses_only_explicit_configuration(self):
+        for module in ('TestCreator.settings', 'TestCreator.production'):
+            self.import_settings(module, {}, "assert settings.DEMO_MODE is False; "
+                                 "assert settings.DEMO_USERNAME == 'demo'; assert settings.DEMO_PASSWORD == ''")
+            for debug in ('true', 'false'):
+                for mode in ('false', 'true'):
+                    self.import_settings(module, {'DJANGO_DEBUG': debug, 'DEMO_MODE': mode,
+                        'DEMO_USERNAME': 'shared-demo', 'DEMO_PASSWORD': 'dedicated-demo-password'},
+                        f"assert settings.DEMO_MODE is {mode == 'true'!r}; "
+                        "assert settings.DEMO_USERNAME == 'shared-demo'; "
+                        "assert settings.DEMO_PASSWORD == 'dedicated-demo-password'")

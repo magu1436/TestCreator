@@ -11,4 +11,6 @@ DB_PORT: "4000"
 DB_NAME: "your-database-name"
 DB_USER: "your-database-user"
 DB_SSL_CA: "/run/certs/db-ca.pem"
+# OCRの1日あたり上限。未設定時は通常環境で無制限（詳細は docs/ocr-usage-limit.md）。
+# OCR_DAILY_LIMIT: "-1"
 # DJANGO_SECRET_KEY、DB_PASSWORD、OPENAI_API_KEY は秘密情報として別途設定する。

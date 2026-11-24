@@ -284,21 +284,24 @@ export class WordTable {
 
     /**
      * 特定のキーワードを含む単語のみを可視化させるメソッド.
+     * 大文字・小文字は区別しない.
      * @param keys 検索キーワード
      * @returns {WordRow[]} 可視化されている `WordRow` 配列
      */
     setVisibleByKeywords(...keys: string[]){
+        const lowerKeys = keys.map(k => k.toLowerCase());
         this._words.forEach(wr => {
             wr.setVisible(true);
-            for (const k of keys){
-                if (!wr.term.includes(k) && !wr.meaning.includes(k) && !wr.editor.includes(k)){
+            const fields = [wr.term, wr.meaning, wr.editor].map(f => (f ?? "").toLowerCase());
+            for (const k of lowerKeys){
+                if (!fields.some(f => f.includes(k))){
                     wr.setVisible(false);
                     wr.toggleSelected(false);
                     break;
                 }
             }
         })
-        return this._words.filter(wr => {wr.isVisible});
+        return this._words.filter(wr => wr.isVisible);
     }
 
     /**

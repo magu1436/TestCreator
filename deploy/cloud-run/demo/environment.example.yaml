@@ -1,0 +1,12 @@
+# 非秘密のフラットな文字列だけを設定する。DB_*、秘密値を追加しない。
+DJANGO_SETTINGS_MODULE: "TestCreator.production"
+DJANGO_DEBUG: "false"
+DEMO_MODE: "true"
+DEMO_USERNAME: "demo"
+OUTPUT_PDF_DIR: "/tmp/exports"
+# 最初は到達不能なホストで起動し、取得した実URLにdeploy.ps1が更新する。
+ALLOWED_HOSTS: "bootstrap.invalid"
+CSRF_TRUSTED_ORIGINS: "https://bootstrap.invalid"
+# ocr/quota.pyで実装済み。公開前に実環境の上限動作と監視を確認する。
+# SQLite再作成で回数はリセットされる。厳密な課金上限ではない。
+OCR_DAILY_LIMIT: "10"

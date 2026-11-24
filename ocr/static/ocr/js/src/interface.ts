@@ -22,23 +22,32 @@ const onSubmit = async () => {
     const increaseProgress = () => {
         progressbar.increase(Math.round(1 / proceedFilesAmount * 100));
     }
-    for (const f of dropzone.droppedFiles){
-        const fd = new FormData();
-        fd.append("files", f.file);
-        const data = await runPostMethod(getUrl("ocr:ocr"), fd);
-        console.log(data.message);
-        data.words.forEach((w: { number: number; term: string; meaning: string; }) => {
-            const wr = new ResultWordRow(w.number, w.term, w.meaning);
-            table.registerWordRow(wr);
-        })
-        dropzone.removeImageFile(f);
-        increaseProgress();
+    // エラー(利用上限・OCR失敗・通信失敗)が起きたら残りのファイルは処理せず、追加済みの行は残す。
+    // エラー内容は共通処理(runPostMethod)が alert で通知済み。
+    try {
+        for (const f of dropzone.droppedFiles){
+            const fd = new FormData();
+            fd.append("files", f.file);
+            const data = await runPostMethod(getUrl("ocr:ocr"), fd);
+            // 通信失敗時は例外ではなくundefinedが返る。
+            if (!data) break;
+            console.log(data.message);
+            data.words.forEach((w: { number: number; term: string; meaning: string; }) => {
+                const wr = new ResultWordRow(w.number, w.term, w.meaning);
+                table.registerWordRow(wr);
+            })
+            dropzone.removeImageFile(f);
+            increaseProgress();
+        }
+    } catch (err) {
+        // サーバーがエラーを返した場合(429・502など)。通知済みのため記録だけ残して打ち切る。
+        console.error(err);
+    } finally {
+        submitBtn.textContent = "アップロード開始"
+        submitBtn.disabled = false;
+        progressbar.percent = 0;
+        progressbar.toggleVisible(false);
     }
-
-    submitBtn.textContent = "アップロード開始"
-    submitBtn.disabled = false;
-    progressbar.percent = 0;
-    progressbar.toggleVisible(false);
 }
 
 const table = ResultWordTable.instance;

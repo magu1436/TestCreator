@@ -13,6 +13,7 @@ Cloud Run 固有の設定例・スクリプト・ドキュメントはこのデ�
 - DB設定は `DB_*` を使用します。旧 `TIDB_*` は使用しません。
 - 秘密鍵・DBパスワード・OCRキーは実行環境の秘密情報として渡し、リポジトリやイメージには含めません。
 - TiDB用CAはコンテナから読める場所へ配置し、そのパスを `DB_SSL_CA` に指定します。
+- OCRの1日あたりの上限は `OCR_DAILY_LIMIT` で設定できます。未設定なら通常環境では無制限です。詳細は [OCR利用上限と公開デモの運用](../../docs/ocr-usage-limit.md) を参照してください。
 
 Cloud Run のファイルシステムは一時的なメモリ上の領域です。PDFやアップロードデータの永続保存先にはできません。
 アップロードを保持する運用では、別途永続ストレージを設計してください。
@@ -43,3 +44,7 @@ deploy ブランチは移管と参照先の確認が終わるまで残し、今�
 
 - [コンテナのランタイム契約](https://docs.cloud.google.com/run/docs/container-contract)
 - [サービスの環境変数の設定](https://docs.cloud.google.com/run/docs/configuring/services/environment-variables)
+
+## 公開デモ
+
+本番と分離した wordtest-demo の設定・非公開デプロイ・公開前条件は [公開デモ手順](demo/README.md) を参照してください。
