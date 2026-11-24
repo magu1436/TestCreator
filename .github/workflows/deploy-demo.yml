@@ -49,7 +49,7 @@ jobs:
           $actual = git -C source rev-parse HEAD
           if ($actual -cne $env:RESOLVED_SHA) { throw 'checkoutされたSHAが一致しません。' }
           # credential生成前に構築する。contextはsource/だけに限定する。
-          docker build --tag "${env:IMAGE_NAME}:run-${env:GITHUB_RUN_ID}-${env:GITHUB_RUN_ATTEMPT}" ./source
+          docker build --platform linux/amd64 --tag "${env:IMAGE_NAME}:run-${env:GITHUB_RUN_ID}-${env:GITHUB_RUN_ATTEMPT}" ./source
       - name: Workload Identity Federation認証
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
@@ -59,7 +59,7 @@ jobs:
           create_credentials_file: true
       - name: gcloud準備
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
-      - name: pushとdigest確定
+      - name: pushと実行用digest確定
         id: image
         run: |
           $ErrorActionPreference = 'Stop'
@@ -69,7 +69,11 @@ jobs:
           docker push $tag
           $digest = gcloud artifacts docker images describe $tag --project=wordtestcreator --format='value(image_summary.digest)'
           if ($digest -cnotmatch '^sha256:[a-f0-9]{64}$') { throw 'pushしたdigestを取得できません。' }
-          "image=${env:IMAGE_NAME}@$digest" >> $env:GITHUB_OUTPUT
+          $parentImage = "${env:IMAGE_NAME}@$digest"
+          # 解決失敗時も、push済みの不変な親参照を調査できるよう先に記録する。
+          "parent_image=$parentImage" >> $env:GITHUB_OUTPUT
+          $manifestJson = docker buildx imagetools inspect --raw $parentImage | Out-String
+          ./control/deploy/cloud-run/demo/resolve-image.ps1 -Image $parentImage -ManifestJson $manifestJson
       - name: 既存デモサービスのimage更新と稼働確認
         id: deploy
         env:
@@ -83,6 +87,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           TRIGGERING_SHA: ${{ github.sha }}
           RESOLVED_SHA: ${{ steps.resolve.outputs.sha }}
+          PARENT_IMAGE: ${{ steps.image.outputs.parent_image }}
           DEPLOY_IMAGE: ${{ steps.image.outputs.image }}
           REVISION: ${{ steps.deploy.outputs.revision }}
           RESULT: ${{ job.status }}
@@ -96,6 +101,7 @@ jobs:
             event_name = $env:EVENT_NAME
             triggering_sha = $env:TRIGGERING_SHA
             resolved_sha = $env:RESOLVED_SHA
+            parent_image_digest = $env:PARENT_IMAGE
             image_digest = $env:DEPLOY_IMAGE
             revision = $env:REVISION
             result = $env:RESULT
