@@ -17,11 +17,11 @@ function Assert($Condition, $Message) { if (-not $Condition) { throw $Message } 
 $deploy = Join-Path $PSScriptRoot 'deploy.ps1'
 Assert (Test-Path $deploy) 'デプロイスクリプトが未実装です'
 $valid = @{
-    Image = 'asia-northeast1-docker.pkg.dev/wordtestcreator/demo/app@sha256:' + ('a' * 64)
-    ServiceAccount = 'wordtest-demo@wordtestcreator.iam.gserviceaccount.com'
-    DjangoSecret = 'wordtest-demo-django-secret-key:1'
-    DemoPasswordSecret = 'wordtest-demo-password:2'
-    OpenAiSecret = 'openai-api-key:3'
+    Image = 'asia-northeast1-docker.pkg.dev/wordtestcreator/webapps/wordtest-demo@sha256:' + ('a' * 64)
+    ServiceAccount = 'wordtestcreator-demo@wordtestcreator.iam.gserviceaccount.com'
+    DjangoSecret = 'DJANGO_DEMO_SECRET_KEY:1'
+    DemoPasswordSecret = 'DEMO_ADMIN_PASSWORD:1'
+    OpenAiSecret = 'OPENAI_API_KEY:2'
 }
 & $deploy @valid -WhatIf
 Assert ($global:DemoTestCalls.Count -eq 0) 'WhatIfでgcloudが呼ばれました'
@@ -29,12 +29,32 @@ Assert ($global:DemoTestCalls.Count -eq 0) 'WhatIfでgcloudが呼ばれました
 Assert ($global:DemoTestCalls.Count -eq 5) 'deploy、IAM確認2回、describe、updateの順に5回必要です'
 $first = $global:DemoTestCalls[0]
 Assert (($first[0..2] -join ' ') -eq 'run deploy wordtest-demo') '本番とは別サービスに限定してください'
-foreach ($arg in @('--project=wordtestcreator','--region=asia-northeast1','--no-allow-unauthenticated','--invoker-iam-check','--ingress=internal','--min=0','--max=1','--cpu=2','--memory=2Gi','--concurrency=1','--timeout=120','--service-account=wordtest-demo@wordtestcreator.iam.gserviceaccount.com','--set-secrets=DJANGO_SECRET_KEY=wordtest-demo-django-secret-key:1,DEMO_PASSWORD=wordtest-demo-password:2,OPENAI_API_KEY=openai-api-key:3')) {
+foreach ($arg in @('--project=wordtestcreator','--region=asia-northeast1','--no-allow-unauthenticated','--invoker-iam-check','--ingress=internal','--min=0','--max=1','--cpu=2','--memory=2Gi','--concurrency=1','--timeout=120','--service-account=wordtestcreator-demo@wordtestcreator.iam.gserviceaccount.com','--set-secrets=DJANGO_SECRET_KEY=DJANGO_DEMO_SECRET_KEY:1,DEMO_PASSWORD=DEMO_ADMIN_PASSWORD:1,OPENAI_API_KEY=OPENAI_API_KEY:2')) {
     Assert ($first -contains $arg) "引数がありません: $arg"
 }
+Assert ($first -contains ('--image=asia-northeast1-docker.pkg.dev/wordtestcreator/webapps/wordtest-demo@sha256:' + ('a' * 64))) '固定digestのイメージを渡していません'
 Assert (($global:DemoTestCalls[3][0..2] -join ' ') -eq 'run services describe') '実URLを取得してください'
 Assert ($global:DemoTestCalls[4] -contains '--update-env-vars=ALLOWED_HOSTS=wordtest-demo-123.asia-northeast1.run.app,CSRF_TRUSTED_ORIGINS=https://wordtest-demo-123.asia-northeast1.run.app') '実URLの完全一致設定が必要です'
+# 従来のデモ専用名も引き続き受け入れる。
+foreach ($legacyAccount in @('wordtest-demo', 'wordtest-demo-runtime')) {
+    $global:DemoTestCalls.Clear()
+    $legacy = $valid.Clone()
+    $legacy.ServiceAccount = "$legacyAccount@wordtestcreator.iam.gserviceaccount.com"
+    $legacy.DjangoSecret = 'wordtest-demo-django-secret-key:1'
+    $legacy.DemoPasswordSecret = 'wordtest-demo-password:2'
+    & $deploy @legacy -Confirm:$false
+    Assert ($global:DemoTestCalls.Count -eq 5) '従来のデモ専用名が拒否されました'
+}
 foreach ($case in @(
+    @{ ServiceAccount = 'run-wordtestcreator@wordtestcreator.iam.gserviceaccount.com' },
+    @{ ServiceAccount = 'wordtestcreator-demo-other@wordtestcreator.iam.gserviceaccount.com' },
+    @{ DjangoSecret = 'DJANGO_SECRET_KEY:1' }, @{ DemoPasswordSecret = 'ADMIN_PASSWORD:1' },
+    @{ DemoPasswordSecret = 'DJANGO_SUPERUSER_PASSWORD:1' },
+    @{ DjangoSecret = 'DEMO_ADMIN_PASSWORD:1'; DemoPasswordSecret = 'DJANGO_DEMO_SECRET_KEY:1' },
+    @{ DjangoSecret = 'DJANGO_DEMO_SECRET_KEY:latest' }, @{ DemoPasswordSecret = 'DEMO_ADMIN_PASSWORD:0' },
+    @{ OpenAiSecret = 'OPENAI_API_KEY:latest' }, @{ OpenAiSecret = 'DJANGO_DEMO_SECRET_KEY:2' },
+    @{ OpenAiSecret = 'DEMO_ADMIN_PASSWORD:2' },
+    @{ DjangoSecret = 'wordtest-demo-shared:1'; DemoPasswordSecret = 'wordtest-demo-shared:2' },
     @{ Image = 'placeholder' }, @{ ServiceAccount = 'production@wordtestcreator.iam.gserviceaccount.com' },
     @{ DjangoSecret = 'production-key:1' }, @{ DemoPasswordSecret = 'wordtest-demo-password:latest' },
     @{ OpenAiSecret = 'REPLACE_ME:1' }, @{ Project = 'other-project' }, @{ Service = 'wordtest' }
@@ -123,7 +143,7 @@ if (args[0] === 'run' && args[2] === 'describe') console.log(JSON.stringify({sta
         $nativeCalls = @(Get-Content $env:DEMO_TEST_LOG | ForEach-Object { ,(ConvertFrom-Json $_) })
         Assert ($nativeCalls.Count -eq 5) '.cmd経由の呼び出し回数が違います'
         Assert ($nativeCalls[0] -contains ('--env-vars-file=' + (Join-Path $temporary 'environment.example.yaml'))) '.cmdで空白を含むパスが分割されました'
-        Assert ($nativeCalls[0] -contains '--set-secrets=DJANGO_SECRET_KEY=wordtest-demo-django-secret-key:1,DEMO_PASSWORD=wordtest-demo-password:2,OPENAI_API_KEY=openai-api-key:3') '.cmdでSecret引数が分割されました'
+        Assert ($nativeCalls[0] -contains '--set-secrets=DJANGO_SECRET_KEY=DJANGO_DEMO_SECRET_KEY:1,DEMO_PASSWORD=DEMO_ADMIN_PASSWORD:1,OPENAI_API_KEY=OPENAI_API_KEY:2') '.cmdでSecret引数が分割されました'
         Assert ($nativeCalls[4] -contains '--update-env-vars=ALLOWED_HOSTS=wordtest-demo-abc-an.a.run.app,CSRF_TRUSTED_ORIGINS=https://wordtest-demo-abc-an.a.run.app') '旧形式URLを反映できませんでした'
         Write-Host 'PASS: Windows gcloud.cmd argument boundary'
     } finally {
