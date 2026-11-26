@@ -1,6 +1,6 @@
 # Cloud Run 公開デモ（Issue #31 Step 1）
 
-対象はプロジェクト `wordtestcreator`、リージョン `asia-northeast1`、サービス `wordtest-demo` に固定します。本番サービス、DB、Secret値は変更しません。既存の [デモ実装](../../../docs/demo.md) と共通Dockerfileを利用します。GCP操作はユーザーが実施します。この変更では実環境への適用・公開確認を行いません。
+対象はプロジェクト `wordtestcreator`、リージョン `asia-northeast1`、サービス `wordtest-demo` に固定します。本番サービス、DB、Secret値は変更しません。既存の [デモ実装](../../../docs/demo.md) と共通Dockerfileを利用します。初期構築のGCP操作はユーザーが実施し、通常更新は承認後のActionsで行います。停止・切り戻し・復旧は[デモ専用runbook](runbook.md)を参照してください。
 
 ## 設定と前提
 
@@ -89,7 +89,7 @@ SA、Secret ID、Artifact Registryの `webapps` は作成済み構成に合わ�
 
 ## 4. 公開は別操作（OCR制限の実環境検証後）
 
-実装済みのOCR上限（Issue #33）・失敗時挙動・監視を実環境で確認し、非公開状態で起動・ログイン・初期サンプル・PDF・実URL/CSRF設定を検証してから公開します。公開を許可する最終操作は次だけです。組織ポリシーで拒否された場合は制限を迂回せず、担当者へ確認してください。
+実装済みのOCR上限（Issue #33）・失敗時挙動・監視を実環境で確認し、非公開状態で起動・ログイン・初期サンプル・PDF・実URL/CSRF設定を検証してから公開します。以下は初期構築時にIAM方式で公開する場合の操作例です。現行はInvoker IAMチェック無効化方式で公開済みのため、停止からの復帰でこのIAM追加を再実行せず、[runbook](runbook.md#5-公開停止を解除する)に従って直前の公開方式を保持してください。組織ポリシーで拒否された場合は制限を迂回せず、担当者へ確認してください。
 
 ```powershell
 gcloud run services add-iam-policy-binding wordtest-demo --project=wordtestcreator --region=asia-northeast1 --member=allUsers --role=roles/run.invoker
@@ -125,9 +125,9 @@ WhatIfの無呼び出し、対象固定、入力拒否、実URLの反映、リ�
 `deploy.ps1` は初期構築用で、再実行時にサービスを非公開へ戻すため、このworkflowでは呼びません。
 サービスの初期構築・匿名公開・専用Secretの作成と実行SAへの権限付与は、管理者が別途完了させてください。
 
-この変更では、以下のGitHub Environment / WIF / IAM設定を外部環境へ適用していません。
-設定後の実際のActions実行・Cloud Run更新は未検証です。#31の実環境確認とは別に、初回利用時に確認してください。
-切り戻し手順書の作成は次の作業です。
+GitHub Environment / WIF / IAMは適用済みで、承認後のActionsによるCloud Run更新は[成功run](https://github.com/magu1436/TestCreator/actions/runs/45474860647)で確認済みです。
+ユーザーによるログイン・サンプル・単語編集・PDFの確認も完了しています。適用と確認の根拠は[Issue #32の運用記録](https://github.com/magu1436/TestCreator/issues/32#issuecomment-7143034536)を参照してください。
+[停止・切り戻し・復旧runbook](runbook.md)は作成済みですが、これらの操作の実環境での実施は未実施です。
 
 ### 一度だけ行う設定
 
@@ -143,7 +143,7 @@ YAMLの `environment: demo` だけでは承認を強制できません。Environ
 この承認は、mainへのマージ承認とは別のデプロイ承認です。build・認証・push・Cloud Run更新はすべて `demo` の同じjob内にあり、承認前には実行されません。
 Environmentと保護ルールはpublic repositoryでは現行のGitHubプランで利用できます。private repositoryのrequired reviewers等はプランに依存するため、非公開化する場合は承認保護が利用できることを再確認してください。
 設定方法・利用条件は[GitHub公式のEnvironment管理手順](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)を参照してください。
-この変更ではGitHubのEnvironment保護設定も適用していません。
+以下は再構築・設定確認用です。適用済みの保護設定も、利用時に有効なままであることを確認してください。
 
 Environment `demo` のVariablesへ以下を登録します。サービスアカウントのJSON鍵は登録しません。
 
